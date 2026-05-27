@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 
@@ -31,7 +31,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   constructor(
     private monitoringService: MonitoringService,
     private firewallService: FirewallService,
-    private webSocketService: WebSocketService
+    private webSocketService: WebSocketService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -39,14 +40,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.webSocketService.connect(WS_URL);
     this.wsSub = this.webSocketService.alerts$.subscribe(alert => {
       this.alerts.unshift(alert);
-      this.monitoringService.getSuspiciousIps().subscribe(d => this.suspiciousIps = d);
+      this.monitoringService.getSuspiciousIps().subscribe(d => {
+        this.suspiciousIps = d;
+        this.cdr.detectChanges();
+      });
     });
   }
 
   loadStats(): void {
-    this.monitoringService.getConnections().subscribe(d  => this.connectionsCount = d.length);
-    this.monitoringService.getFirewallRules().subscribe(d => this.rulesCount = d.length);
-    this.monitoringService.getSuspiciousIps().subscribe(d => this.suspiciousIps = d);
+    this.monitoringService.getConnections().subscribe(d  => { this.connectionsCount = d.length; this.cdr.detectChanges(); });
+    this.monitoringService.getFirewallRules().subscribe(d => { this.rulesCount = d.length;       this.cdr.detectChanges(); });
+    this.monitoringService.getSuspiciousIps().subscribe(d => { this.suspiciousIps = d;           this.cdr.detectChanges(); });
   }
 
   get blockedCount(): number  { return this.suspiciousIps.filter(i => i.status === 'BLOCKED').length; }

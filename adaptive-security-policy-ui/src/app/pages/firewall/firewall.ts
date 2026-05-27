@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MonitoringService, SuspiciousIpInfo } from '../../services/monitoring.service';
@@ -26,13 +26,17 @@ export class FirewallComponent implements OnInit {
 
   constructor(
     private monitoringService: MonitoringService,
-    private firewallService: FirewallService
+    private firewallService: FirewallService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void { this.load(); }
 
   load(): void {
-    this.monitoringService.getSuspiciousIps().subscribe(d => this.suspiciousIps = d);
+    this.monitoringService.getSuspiciousIps().subscribe(d => {
+      this.suspiciousIps = d;
+      this.cdr.detectChanges();
+    });
   }
 
   get blockedIps(): SuspiciousIpInfo[] { return this.suspiciousIps.filter(i => i.status === 'BLOCKED'); }

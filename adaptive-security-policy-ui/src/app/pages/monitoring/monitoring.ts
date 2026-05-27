@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MonitoringService, NetworkConnection, FirewallRule } from '../../services/monitoring.service';
 
@@ -15,13 +15,16 @@ export class MonitoringComponent implements OnInit {
   firewallRules: FirewallRule[]    = [];
   loading = true;
 
-  constructor(private monitoringService: MonitoringService) {}
+  constructor(
+    private monitoringService: MonitoringService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void { this.load(); }
 
   load(): void {
     this.loading = true;
-    this.monitoringService.getConnections().subscribe(d  => this.connections   = d);
-    this.monitoringService.getFirewallRules().subscribe(d => { this.firewallRules = d; this.loading = false; });
+    this.monitoringService.getConnections().subscribe(d  => { this.connections   = d; this.cdr.detectChanges(); });
+    this.monitoringService.getFirewallRules().subscribe(d => { this.firewallRules = d; this.loading = false; this.cdr.detectChanges(); });
   }
 }
