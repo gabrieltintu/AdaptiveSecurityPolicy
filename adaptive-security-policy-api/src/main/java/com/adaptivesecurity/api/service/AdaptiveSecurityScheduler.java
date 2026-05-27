@@ -2,6 +2,7 @@ package com.adaptivesecurity.api.service;
 
 import com.adaptivesecurity.api.dto.SuspiciousIpInfo;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -12,6 +13,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class AdaptiveSecurityScheduler {
@@ -47,16 +49,24 @@ public class AdaptiveSecurityScheduler {
 
             if (count >= blockThreshold && !blockedIps.contains(ip)) {
                 firewallManagementService.blockIp(ip, "ALL");
-                alertService.sendBlockAlert(info);
                 webSocketAlertService.sendBlockAlert(info);
                 blockedIps.add(ip);
                 warnedIps.add(ip);
+                trySendEmail(() -> alertService.sendBlockAlert(info), ip, "block");
 
             } else if (count >= warningThreshold && !warnedIps.contains(ip)) {
-                alertService.sendWarningAlert(info);
                 webSocketAlertService.sendWarningAlert(info);
                 warnedIps.add(ip);
+                trySendEmail(() -> alertService.sendWarningAlert(info), ip, "warning");
             }
+        }
+    }
+
+    private void trySendEmail(Runnable emailAction, String ip, String type) {
+        try {
+            emailAction.run();
+        } catch (Exception e) {
+            log.warn("Email alert ({}) failed for IP {} — {}", type, ip, e.getMessage());
         }
     }
 
