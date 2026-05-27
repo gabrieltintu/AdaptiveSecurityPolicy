@@ -1,30 +1,36 @@
 <div class="dashboard">
 
+  <!-- Header -->
+  <div class="page-header">
+    <h1 class="page-title">Security Dashboard</h1>
+    <p class="page-subtitle">Real-time adaptive firewall monitoring & management</p>
+  </div>
+
   <!-- Stats -->
   <section class="stats-grid">
     <div class="stat-card">
-      <span class="stat-icon" style="color: var(--accent)">⬡</span>
+      <div class="stat-icon-wrap blue">🔗</div>
       <div>
         <div class="stat-value">{{ connections.length }}</div>
         <div class="stat-label">Active Connections</div>
       </div>
     </div>
     <div class="stat-card">
-      <span class="stat-icon" style="color: var(--orange)">⚙</span>
+      <div class="stat-icon-wrap orange">⚙️</div>
       <div>
         <div class="stat-value">{{ firewallRules.length }}</div>
         <div class="stat-label">Firewall Rules</div>
       </div>
     </div>
     <div class="stat-card">
-      <span class="stat-icon" style="color: var(--yellow)">⚠</span>
+      <div class="stat-icon-wrap yellow">⚠️</div>
       <div>
         <div class="stat-value">{{ warningCount }}</div>
         <div class="stat-label">Suspicious IPs</div>
       </div>
     </div>
     <div class="stat-card">
-      <span class="stat-icon" style="color: var(--red)">⊗</span>
+      <div class="stat-icon-wrap red">🚫</div>
       <div>
         <div class="stat-value">{{ blockedCount }}</div>
         <div class="stat-label">Blocked IPs</div>
@@ -32,26 +38,19 @@
     </div>
   </section>
 
-  <!-- Main Content -->
+  <!-- Main content -->
   <section class="main-grid">
 
-    <!-- Left: Suspicious IPs + Block Form -->
     <div class="col">
-
       <!-- Block IP -->
       <div class="card">
         <div class="card-header">
-          <h2 class="card-title">Block IP</h2>
+          <h2 class="card-title">Block IP Address</h2>
         </div>
         <div class="block-form">
-          <input
-            class="input"
-            type="text"
-            placeholder="e.g. 192.168.1.100"
-            [(ngModel)]="blockIpInput"
-            (keyup.enter)="submitBlock()"
-          />
-          <button class="btn btn-danger" (click)="submitBlock()">Block</button>
+          <input class="input" type="text" placeholder="e.g. 192.168.1.100"
+            [(ngModel)]="blockIpInput" (keyup.enter)="submitBlock()" />
+          <button class="btn btn-primary" (click)="submitBlock()">Block</button>
         </div>
         @if (actionMessage) {
           <p class="action-msg" [class.success]="actionSuccess">{{ actionMessage }}</p>
@@ -62,7 +61,7 @@
       <div class="card">
         <div class="card-header">
           <h2 class="card-title">Suspicious IPs</h2>
-          <button class="btn-ghost" (click)="loadAll()">Refresh</button>
+          <button class="btn-ghost" (click)="loadAll()">↻ Refresh</button>
         </div>
         @if (suspiciousIps.length === 0) {
           <p class="empty">No suspicious activity detected.</p>
@@ -75,7 +74,7 @@
                   <span class="ip-addr">{{ ip.ipAddress }}</span>
                   <span class="ip-attempts">{{ ip.failedAttempts }} attempts</span>
                 </div>
-                <div class="ip-actions">
+                <div>
                   @if (ip.status !== 'BLOCKED') {
                     <button class="btn btn-sm btn-danger" (click)="blockIp(ip.ipAddress)">Block</button>
                   } @else {
@@ -89,7 +88,7 @@
       </div>
     </div>
 
-    <!-- Right: Live Alerts -->
+    <!-- Live Alerts -->
     <div class="col">
       <div class="card card-tall">
         <div class="card-header">
@@ -120,7 +119,6 @@
   <!-- Tables -->
   <section class="tables-grid">
 
-    <!-- Network Connections -->
     <div class="card">
       <div class="card-header">
         <h2 class="card-title">Network Connections</h2>
@@ -129,10 +127,7 @@
         <table>
           <thead>
             <tr>
-              <th>Protocol</th>
-              <th>State</th>
-              <th>Local Address</th>
-              <th>Peer Address</th>
+              <th>Protocol</th><th>State</th><th>Local Address</th><th>Peer Address</th>
             </tr>
           </thead>
           <tbody>
@@ -149,7 +144,6 @@
       </div>
     </div>
 
-    <!-- Firewall Rules -->
     <div class="card">
       <div class="card-header">
         <h2 class="card-title">Firewall Rules</h2>
@@ -158,11 +152,7 @@
         <table>
           <thead>
             <tr>
-              <th>Chain</th>
-              <th>Target</th>
-              <th>Protocol</th>
-              <th>Source</th>
-              <th>Destination</th>
+              <th>Chain</th><th>Target</th><th>Protocol</th><th>Source</th><th>Destination</th>
             </tr>
           </thead>
           <tbody>
