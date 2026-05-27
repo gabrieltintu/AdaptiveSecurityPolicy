@@ -1,0 +1,191 @@
+<div class="dashboard">
+
+  <!-- Stats -->
+  <section class="stats-grid">
+    <div class="stat-card">
+      <span class="stat-icon" style="color: var(--accent)">⬡</span>
+      <div>
+        <div class="stat-value">{{ connections.length }}</div>
+        <div class="stat-label">Active Connections</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-icon" style="color: var(--orange)">⚙</span>
+      <div>
+        <div class="stat-value">{{ firewallRules.length }}</div>
+        <div class="stat-label">Firewall Rules</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-icon" style="color: var(--yellow)">⚠</span>
+      <div>
+        <div class="stat-value">{{ warningCount }}</div>
+        <div class="stat-label">Suspicious IPs</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-icon" style="color: var(--red)">⊗</span>
+      <div>
+        <div class="stat-value">{{ blockedCount }}</div>
+        <div class="stat-label">Blocked IPs</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content -->
+  <section class="main-grid">
+
+    <!-- Left: Suspicious IPs + Block Form -->
+    <div class="col">
+
+      <!-- Block IP -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Block IP</h2>
+        </div>
+        <div class="block-form">
+          <input
+            class="input"
+            type="text"
+            placeholder="e.g. 192.168.1.100"
+            [(ngModel)]="blockIpInput"
+            (keyup.enter)="submitBlock()"
+          />
+          <button class="btn btn-danger" (click)="submitBlock()">Block</button>
+        </div>
+        @if (actionMessage) {
+          <p class="action-msg" [class.success]="actionSuccess">{{ actionMessage }}</p>
+        }
+      </div>
+
+      <!-- Suspicious IPs -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Suspicious IPs</h2>
+          <button class="btn-ghost" (click)="loadAll()">Refresh</button>
+        </div>
+        @if (suspiciousIps.length === 0) {
+          <p class="empty">No suspicious activity detected.</p>
+        } @else {
+          <div class="ip-list">
+            @for (ip of suspiciousIps; track ip.ipAddress) {
+              <div class="ip-row">
+                <div class="ip-info">
+                  <span class="badge" [class]="statusClass(ip.status)">{{ ip.status }}</span>
+                  <span class="ip-addr">{{ ip.ipAddress }}</span>
+                  <span class="ip-attempts">{{ ip.failedAttempts }} attempts</span>
+                </div>
+                <div class="ip-actions">
+                  @if (ip.status !== 'BLOCKED') {
+                    <button class="btn btn-sm btn-danger" (click)="blockIp(ip.ipAddress)">Block</button>
+                  } @else {
+                    <button class="btn btn-sm btn-ghost" (click)="unblockIp(ip.ipAddress)">Unblock</button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Right: Live Alerts -->
+    <div class="col">
+      <div class="card card-tall">
+        <div class="card-header">
+          <h2 class="card-title">Live Alerts</h2>
+          <span class="live-dot"></span>
+        </div>
+        @if (alerts.length === 0) {
+          <p class="empty">Monitoring active — no alerts yet.</p>
+        } @else {
+          <div class="alerts-list">
+            @for (alert of alerts; track alert.timestamp) {
+              <div class="alert-item" [class]="alert.status">
+                <div class="alert-top">
+                  <span class="badge" [class]="statusClass(alert.status)">{{ alert.status }}</span>
+                  <span class="alert-ip">{{ alert.ipAddress }}</span>
+                  <span class="alert-time">{{ formatDateTime(alert.timestamp) }}</span>
+                </div>
+                <p class="alert-msg">{{ alert.message }}</p>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+  </section>
+
+  <!-- Tables -->
+  <section class="tables-grid">
+
+    <!-- Network Connections -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Network Connections</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Protocol</th>
+              <th>State</th>
+              <th>Local Address</th>
+              <th>Peer Address</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (conn of connections; track conn.localAddress) {
+              <tr>
+                <td><span class="tag">{{ conn.protocol }}</span></td>
+                <td>{{ conn.state }}</td>
+                <td class="mono">{{ conn.localAddress }}</td>
+                <td class="mono">{{ conn.peerAddress }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Firewall Rules -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Firewall Rules</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Chain</th>
+              <th>Target</th>
+              <th>Protocol</th>
+              <th>Source</th>
+              <th>Destination</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (rule of firewallRules; track $index) {
+              <tr>
+                <td><span class="tag">{{ rule.chain }}</span></td>
+                <td>
+                  <span class="badge"
+                    [class.badge-red]="rule.target === 'DROP' || rule.target === 'REJECT'"
+                    [class.badge-green]="rule.target === 'ACCEPT'">
+                    {{ rule.target }}
+                  </span>
+                </td>
+                <td>{{ rule.protocol }}</td>
+                <td class="mono">{{ rule.source }}</td>
+                <td class="mono">{{ rule.destination }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </section>
+
+</div>
