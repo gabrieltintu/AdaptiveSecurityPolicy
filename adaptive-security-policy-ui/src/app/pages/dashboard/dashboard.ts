@@ -1,9 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 
-import { MonitoringService, NetworkConnection, FirewallRule, SuspiciousIpInfo } from '../../services/monitoring.service';
+import { MonitoringService, SuspiciousIpInfo } from '../../services/monitoring.service';
 import { FirewallService } from '../../services/firewall.service';
 import { WebSocketService, AlertEvent } from '../../services/websocket.service';
 import { WS_URL } from '../../utils/constants';
@@ -13,20 +12,16 @@ import { MESSAGES } from '../../utils/messages';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
 export class DashboardComponent implements OnInit, OnDestroy {
 
-  connections: NetworkConnection[]   = [];
-  firewallRules: FirewallRule[]      = [];
-  suspiciousIps: SuspiciousIpInfo[]  = [];
-  alerts: AlertEvent[]               = [];
-
-  blockIpInput = '';
-  actionMessage = '';
-  actionSuccess = false;
+  connectionsCount = 0;
+  rulesCount       = 0;
+  suspiciousIps: SuspiciousIpInfo[] = [];
+  alerts: AlertEvent[]              = [];
 
   private wsSub?: Subscription;
 
@@ -40,7 +35,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.loadAll();
+    this.loadStats();
     this.webSocketService.connect(WS_URL);
     this.wsSub = this.webSocketService.alerts$.subscribe(alert => {
       this.alerts.unshift(alert);
@@ -48,39 +43,20 @@ export class DashboardComponent implements OnInit, OnDestroy {
     });
   }
 
-  loadAll(): void {
-    this.monitoringService.getConnections().subscribe(d  => this.connections   = d);
-    this.monitoringService.getFirewallRules().subscribe(d => this.firewallRules = d);
+  loadStats(): void {
+    this.monitoringService.getConnections().subscribe(d  => this.connectionsCount = d.length);
+    this.monitoringService.getFirewallRules().subscribe(d => this.rulesCount = d.length);
     this.monitoringService.getSuspiciousIps().subscribe(d => this.suspiciousIps = d);
   }
 
-  get blockedCount(): number {
-    return this.suspiciousIps.filter(ip => ip.status === 'BLOCKED').length;
-  }
-
-  get warningCount(): number {
-    return this.suspiciousIps.filter(ip => ip.status === 'WARNING').length;
-  }
-
-  blockIp(ip: string): void {
-    this.firewallService.blockIp({ ipAddress: ip, chain: 'ALL' }).subscribe({
-      next: res => { this.actionSuccess = res.success; this.actionMessage = res.message; this.loadAll(); },
-      error: ()  => { this.actionSuccess = false; this.actionMessage = MESSAGES.firewall.blockError(ip); }
-    });
-  }
+  get blockedCount(): number  { return this.suspiciousIps.filter(i => i.status === 'BLOCKED').length; }
+  get warningCount(): number  { return this.suspiciousIps.filter(i => i.status === 'WARNING').length; }
 
   unblockIp(ip: string): void {
     this.firewallService.unblockIp({ ipAddress: ip, chain: 'ALL' }).subscribe({
-      next: res => { this.actionSuccess = res.success; this.actionMessage = res.message; this.loadAll(); },
-      error: ()  => { this.actionSuccess = false; this.actionMessage = MESSAGES.firewall.unblockError(ip); }
+      next: () => this.loadStats(),
+      error: ()  => {}
     });
-  }
-
-  submitBlock(): void {
-    if (this.blockIpInput.trim()) {
-      this.blockIp(this.blockIpInput.trim());
-      this.blockIpInput = '';
-    }
   }
 
   ngOnDestroy(): void {

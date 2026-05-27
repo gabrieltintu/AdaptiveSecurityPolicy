@@ -1,0 +1,84 @@
+<div class="page">
+
+  <div class="page-header">
+    <h1 class="page-title">Monitoring</h1>
+    <p class="page-subtitle">Live network state and active firewall rules</p>
+  </div>
+
+  <!-- Network Connections -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Network Connections</h2>
+      <button class="btn-ghost" (click)="load()">↻ Refresh</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Protocol</th>
+            <th>State</th>
+            <th>Local Address</th>
+            <th>Peer Address</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (connections.length === 0) {
+            <tr><td colspan="4"><p class="empty">No connections found.</p></td></tr>
+          }
+          @for (conn of connections; track conn.localAddress) {
+            <tr>
+              <td><span class="tag">{{ conn.protocol }}</span></td>
+              <td>{{ conn.state }}</td>
+              <td class="mono">{{ conn.localAddress }}</td>
+              <td class="mono">{{ conn.peerAddress }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Firewall Rules -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Firewall Rules</h2>
+      <span class="rules-count badge badge-purple">{{ firewallRules.length }} rules</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Chain</th>
+            <th>Target</th>
+            <th>Protocol</th>
+            <th>Source</th>
+            <th>Destination</th>
+            <th>Options</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (firewallRules.length === 0) {
+            <tr><td colspan="6"><p class="empty">No firewall rules found.</p></td></tr>
+          }
+          @for (rule of firewallRules; track $index) {
+            <tr>
+              <td><span class="tag">{{ rule.chain }}</span></td>
+              <td>
+                <span class="badge"
+                  [class.badge-red]="rule.target === 'DROP' || rule.target === 'REJECT'"
+                  [class.badge-green]="rule.target === 'ACCEPT'">
+                  {{ rule.target }}
+                </span>
+              </td>
+              <td>{{ rule.protocol }}</td>
+              <td class="mono">{{ rule.source }}</td>
+              <td class="mono">{{ rule.destination }}</td>
+              <td class="mono">{{ rule.options || '—' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>

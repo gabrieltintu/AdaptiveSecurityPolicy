@@ -1,0 +1,89 @@
+<div class="page">
+
+  <div class="page-header">
+    <h1 class="page-title">Firewall</h1>
+    <p class="page-subtitle">Block and manage IP addresses manually</p>
+  </div>
+
+  <div class="fw-grid">
+
+    <!-- Block IP Form -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Block IP Address</h2>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">IP Address</label>
+        <input class="input" type="text" placeholder="e.g. 192.168.1.100"
+          [(ngModel)]="ipInput" (keyup.enter)="block()" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Chain</label>
+        <div class="chain-pills">
+          @for (c of chains; track c) {
+            <button class="chain-pill" [class.active]="chain === c" (click)="chain = c">{{ c }}</button>
+          }
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-block" (click)="block()">🚫 Block IP</button>
+
+      @if (message) {
+        <p class="action-msg" [class.success]="success">{{ message }}</p>
+      }
+    </div>
+
+    <!-- Suspicious IPs -->
+    <div class="col">
+
+      <!-- Warning -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Suspicious — Warning</h2>
+          <span class="badge status-warning">{{ warningIps.length }}</span>
+        </div>
+        @if (warningIps.length === 0) {
+          <p class="empty">No warnings.</p>
+        } @else {
+          <div class="ip-list">
+            @for (ip of warningIps; track ip.ipAddress) {
+              <div class="ip-row">
+                <div class="ip-info">
+                  <span class="ip-addr">{{ ip.ipAddress }}</span>
+                  <span class="ip-meta">{{ ip.failedAttempts }} attempts</span>
+                </div>
+                <button class="btn btn-sm btn-danger" (click)="blockFromList(ip.ipAddress)">Block</button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Blocked -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Blocked IPs</h2>
+          <span class="badge status-blocked">{{ blockedIps.length }}</span>
+        </div>
+        @if (blockedIps.length === 0) {
+          <p class="empty">No blocked IPs.</p>
+        } @else {
+          <div class="ip-list">
+            @for (ip of blockedIps; track ip.ipAddress) {
+              <div class="ip-row">
+                <div class="ip-info">
+                  <span class="ip-addr">{{ ip.ipAddress }}</span>
+                  <span class="ip-meta">{{ ip.failedAttempts }} attempts</span>
+                </div>
+                <button class="btn btn-sm btn-ghost" (click)="unblock(ip.ipAddress)">Unblock</button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+    </div>
+  </div>
+</div>
