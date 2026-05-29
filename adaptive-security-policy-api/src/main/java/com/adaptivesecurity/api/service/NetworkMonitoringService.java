@@ -16,7 +16,7 @@ public class NetworkMonitoringService {
 
     // Metoda veche pentru conexiuni (ramane neschimbata)
     public List<NetworkConnection> getActiveConnections() {
-        String rawOutput = commandExecutor.execute("ss -tuln");
+        String rawOutput = commandExecutor.execute("ss -tun");
         List<NetworkConnection> connections = new ArrayList<>();
         if (rawOutput == null || rawOutput.isEmpty()) return connections;
 
