@@ -3,6 +3,7 @@ package com.adaptivesecurity.api.service;
 import com.adaptivesecurity.api.dto.SuspiciousIpInfo;
 import com.adaptivesecurity.api.utils.AppConstants;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -19,13 +20,18 @@ public class BruteForceDetectionService {
 
     private final CommandExecutorService commandExecutor;
 
+    @Value("${security.brute-force.detection-window-minutes:60}")
+    private int detectionWindowMinutes;
+
     private static final Pattern IP_PATTERN = Pattern.compile(AppConstants.FAILED_PASSWORD_IP_REGEX);
 
     /**
-     * Parses /var/log/auth.log and returns the number of failed login attempts per IP.
+     * Reads failed SSH login attempts from journald within the configured time window.
+     * Using a sliding window prevents stale log entries from causing permanent re-blocks.
      */
     public Map<String, Integer> getFailedAttemptsByIp() {
-        String output = commandExecutor.execute(AppConstants.AUTH_LOG_CMD);
+        String cmd    = String.format(AppConstants.AUTH_LOG_CMD, detectionWindowMinutes);
+        String output = commandExecutor.execute(cmd);
         Map<String, Integer> attempts = new HashMap<>();
 
         if (output == null || output.isBlank()

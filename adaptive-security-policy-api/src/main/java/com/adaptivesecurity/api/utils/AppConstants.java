@@ -15,8 +15,8 @@ public final class AppConstants {
     public static final String IPTABLES_FORWARD_SRC  = "sudo iptables %s FORWARD -s %s -j DROP";
     public static final String IPTABLES_FORWARD_DST  = "sudo iptables %s FORWARD -d %s -j DROP";
 
-    // Brute force detection
-    public static final String AUTH_LOG_CMD              = "grep \"Failed password\" /var/log/auth.log";
+    // Brute force detection — %d is replaced with the configurable detection window in minutes
+    public static final String AUTH_LOG_CMD              = "journalctl -u ssh -u sshd --since \"%d minutes ago\" --no-pager 2>/dev/null | grep \"Failed password\"";
     public static final String FAILED_PASSWORD_IP_REGEX  = "from (\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}) port";
 
     // Email subject templates (%s = ip address)

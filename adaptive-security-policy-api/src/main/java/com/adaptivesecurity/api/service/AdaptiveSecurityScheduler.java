@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 @Slf4j
 @Component
@@ -30,8 +31,10 @@ public class AdaptiveSecurityScheduler {
     private int blockThreshold;
 
     // In-memory state — resets on app restart (replaced by DB in future)
-    private final Set<String> warnedIps  = ConcurrentHashMap.newKeySet();
-    private final Set<String> blockedIps = ConcurrentHashMap.newKeySet();
+    private final Set<String>             warnedIps      = ConcurrentHashMap.newKeySet();
+    private final Set<String>             blockedIps     = ConcurrentHashMap.newKeySet();
+    // Attempt count at the moment of unblock — used to compute net new attempts after unblock
+    private final ConcurrentMap<String, Integer> attemptBaseline = new ConcurrentHashMap<>();
 
     @Scheduled(fixedRateString = "${security.brute-force.scheduler-interval-ms}")
     public void scan() {
@@ -39,7 +42,9 @@ public class AdaptiveSecurityScheduler {
 
         for (Map.Entry<String, Integer> entry : failedAttempts.entrySet()) {
             String ip    = entry.getKey();
-            int    count = entry.getValue();
+            int    raw   = entry.getValue();
+            // Subtract attempts that existed before the last unblock so the IP isn't immediately re-blocked
+            int    count = Math.max(0, raw - attemptBaseline.getOrDefault(ip, 0));
 
             SuspiciousIpInfo info = SuspiciousIpInfo.builder()
                     .ipAddress(ip)
@@ -77,9 +82,13 @@ public class AdaptiveSecurityScheduler {
     /**
      * Removes an IP from both in-memory sets so the frontend no longer shows it
      * as BLOCKED/WARNING, and the scheduler can re-detect it if it attacks again.
+     * Snapshots the current attempt count as a baseline so old log entries don't
+     * cause an immediate re-block after unblocking.
      */
     public void removeIp(String ip) {
         blockedIps.remove(ip);
         warnedIps.remove(ip);
+        int currentCount = bruteForceDetectionService.getFailedAttemptsByIp().getOrDefault(ip, 0);
+        attemptBaseline.put(ip, currentCount);
     }
 }
