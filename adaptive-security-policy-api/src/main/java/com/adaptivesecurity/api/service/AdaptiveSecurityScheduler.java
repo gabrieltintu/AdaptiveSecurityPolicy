@@ -73,4 +73,13 @@ public class AdaptiveSecurityScheduler {
     public Set<String> getBlockedIps() {
         return Collections.unmodifiableSet(blockedIps);
     }
+
+    /**
+     * Removes an IP from both in-memory sets so the frontend no longer shows it
+     * as BLOCKED/WARNING, and the scheduler can re-detect it if it attacks again.
+     */
+    public void removeIp(String ip) {
+        blockedIps.remove(ip);
+        warnedIps.remove(ip);
+    }
 }

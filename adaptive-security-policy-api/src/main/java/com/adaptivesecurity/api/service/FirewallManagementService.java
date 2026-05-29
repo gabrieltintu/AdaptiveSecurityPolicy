@@ -22,7 +22,7 @@ public class FirewallManagementService {
 
     public FirewallActionResponse unblockIp(String ipAddress, String chain) {
         List<String> commands = buildCommands("-D", ipAddress, chain);
-        return executeAll(commands, "unblocked", ipAddress);
+        return executeAllIdempotent(commands, ipAddress);
     }
 
     private List<String> buildCommands(String action, String ipAddress, String chain) {
@@ -51,6 +51,27 @@ public class FirewallManagementService {
         boolean success = errors.isEmpty();
         String message = success
                 ? "IP " + ipAddress + " has been " + action + " successfully on all specified chains."
+                : "Partial failure for IP " + ipAddress + ": " + String.join("; ", errors);
+        return FirewallActionResponse.builder().success(success).message(message).build();
+    }
+
+    /**
+     * Like executeAll but tolerates "Bad rule" / "No chain" errors from iptables -D.
+     * If the rule is already gone, the goal (IP not blocked) is achieved — treat as success.
+     */
+    private FirewallActionResponse executeAllIdempotent(List<String> commands, String ipAddress) {
+        List<String> errors = new ArrayList<>();
+        for (String cmd : commands) {
+            String result = commandExecutor.execute(cmd);
+            if ((result.startsWith("Warning") || result.startsWith("Internal error"))
+                    && !result.contains("Bad rule")
+                    && !result.contains("No chain/target/match")) {
+                errors.add(result);
+            }
+        }
+        boolean success = errors.isEmpty();
+        String message = success
+                ? "IP " + ipAddress + " has been unblocked successfully on all specified chains."
                 : "Partial failure for IP " + ipAddress + ": " + String.join("; ", errors);
         return FirewallActionResponse.builder().success(success).message(message).build();
     }
