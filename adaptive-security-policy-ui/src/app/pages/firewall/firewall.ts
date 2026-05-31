@@ -5,11 +5,12 @@ import { MonitoringService, SuspiciousIpInfo } from '../../services/monitoring.s
 import { FirewallService } from '../../services/firewall.service';
 import { statusClass } from '../../utils/functions';
 import { MESSAGES } from '../../utils/messages';
+import { IconComponent } from '../../components/icon/icon';
 
 @Component({
   selector: 'app-firewall',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, IconComponent],
   templateUrl: './firewall.html',
   styleUrl: './firewall.css'
 })

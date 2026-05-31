@@ -6,8 +6,8 @@ export const MESSAGES = {
     unblockError:   (ip: string) => `Failed to unblock IP ${ip}.`,
   },
   alerts: {
-    warning: (ip: string, count: number) => `⚠️ Suspicious IP ${ip} — ${count} failed attempts.`,
-    blocked: (ip: string, count: number) => `🔒 IP ${ip} automatically blocked after ${count} attempts.`,
+    warning: (ip: string, count: number) => `Suspicious IP ${ip} — ${count} failed attempts.`,
+    blocked: (ip: string, count: number) => `IP ${ip} automatically blocked after ${count} attempts.`,
   },
   connection: {
     connected:    'Connected to server.',

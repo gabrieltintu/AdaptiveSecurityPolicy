@@ -8,28 +8,28 @@
   <!-- Stats -->
   <div class="stats-grid">
     <div class="stat-card">
-      <div class="stat-icon-wrap blue">🔗</div>
+      <div class="stat-icon-wrap blue"><app-icon name="activity" [size]="22" /></div>
       <div>
         <div class="stat-value">{{ connectionsCount }}</div>
         <div class="stat-label">Active Connections</div>
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon-wrap orange">⚙️</div>
+      <div class="stat-icon-wrap purple"><app-icon name="list" [size]="22" /></div>
       <div>
         <div class="stat-value">{{ rulesCount }}</div>
         <div class="stat-label">Firewall Rules</div>
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon-wrap yellow">⚠️</div>
+      <div class="stat-icon-wrap yellow"><app-icon name="alert" [size]="22" /></div>
       <div>
         <div class="stat-value">{{ warningCount }}</div>
         <div class="stat-label">Suspicious IPs</div>
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon-wrap red">🚫</div>
+      <div class="stat-icon-wrap red"><app-icon name="ban" [size]="22" /></div>
       <div>
         <div class="stat-value">{{ blockedCount }}</div>
         <div class="stat-label">Blocked IPs</div>
@@ -44,7 +44,7 @@
     <div class="card">
       <div class="card-header">
         <h2 class="card-title">Recent Threats</h2>
-        <button class="btn-ghost" (click)="loadStats()">↻ Refresh</button>
+        <button class="btn-ghost" (click)="loadStats()"><app-icon name="refresh" [size]="14" /> Refresh</button>
       </div>
       @if (suspiciousIps.length === 0) {
         <p class="empty">No threats detected.</p>

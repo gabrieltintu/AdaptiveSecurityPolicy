@@ -6,32 +6,71 @@
   filter: blur(90px);
   pointer-events: none;
   z-index: 0;
-  animation: drift 12s ease-in-out infinite;
+  will-change: transform;
 }
 
 .orb-1 {
-  width: 500px; height: 500px;
-  background: rgba(124, 58, 237, 0.2);
-  top: -100px; left: -50px;
-  animation-delay: 0s;
+  width: 520px; height: 520px;
+  background: rgba(124, 58, 237, 0.22);
+  top: -120px; left: -90px;
+  animation: drift-1 24s ease-in-out infinite;
 }
 
 .orb-2 {
-  width: 400px; height: 400px;
-  background: rgba(59, 130, 246, 0.15);
-  top: 40%; right: -80px;
-  animation-delay: -4s;
+  width: 420px; height: 420px;
+  background: rgba(59, 130, 246, 0.17);
+  top: 38%; right: -100px;
+  animation: drift-2 30s ease-in-out infinite;
 }
 
 .orb-3 {
-  width: 350px; height: 350px;
-  background: rgba(236, 72, 153, 0.1);
-  bottom: -80px; left: 30%;
-  animation-delay: -8s;
+  width: 360px; height: 360px;
+  background: rgba(236, 72, 153, 0.12);
+  bottom: -110px; left: 28%;
+  animation: drift-3 27s ease-in-out infinite;
 }
 
-@keyframes drift {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33%       { transform: translate(30px, -20px) scale(1.05); }
-  66%       { transform: translate(-20px, 15px) scale(0.97); }
+.orb-4 {
+  width: 300px; height: 300px;
+  background: rgba(34, 211, 238, 0.10);
+  top: 12%; left: 48%;
+  animation: drift-4 33s ease-in-out infinite;
+}
+
+/* Each orb follows its own wide, looping path for an organic, living feel */
+@keyframes drift-1 {
+  0%   { transform: translate(0, 0) scale(1); }
+  25%  { transform: translate(220px, 140px) scale(1.18); }
+  50%  { transform: translate(120px, 340px) scale(0.92); }
+  75%  { transform: translate(-90px, 180px) scale(1.1); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+@keyframes drift-2 {
+  0%   { transform: translate(0, 0) scale(1); }
+  25%  { transform: translate(-260px, 120px) scale(0.9); }
+  50%  { transform: translate(-180px, -160px) scale(1.2); }
+  75%  { transform: translate(60px, -90px) scale(1.05); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+@keyframes drift-3 {
+  0%   { transform: translate(0, 0) scale(1); }
+  20%  { transform: translate(180px, -120px) scale(1.15); }
+  45%  { transform: translate(320px, -260px) scale(0.95); }
+  70%  { transform: translate(120px, -360px) scale(1.08); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+@keyframes drift-4 {
+  0%   { transform: translate(0, 0) scale(1); }
+  30%  { transform: translate(-200px, 220px) scale(1.22); }
+  55%  { transform: translate(-340px, 60px) scale(0.88); }
+  80%  { transform: translate(-140px, -180px) scale(1.12); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+/* Respect users who prefer less motion */
+@media (prefers-reduced-motion: reduce) {
+  .orb { animation: none; }
 }

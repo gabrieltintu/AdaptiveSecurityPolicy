@@ -28,7 +28,7 @@
         </div>
       </div>
 
-      <button class="btn btn-primary btn-block" (click)="block()">🚫 Block IP</button>
+      <button class="btn btn-primary btn-block" (click)="block()"><app-icon name="ban" [size]="16" /> Block IP</button>
 
       @if (message) {
         <p class="action-msg" [class.success]="success">{{ message }}</p>

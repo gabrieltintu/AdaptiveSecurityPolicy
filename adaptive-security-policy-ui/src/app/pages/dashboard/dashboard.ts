@@ -8,11 +8,12 @@ import { WebSocketService, AlertEvent } from '../../services/websocket.service';
 import { WS_URL } from '../../utils/constants';
 import { formatDateTime, statusClass } from '../../utils/functions';
 import { MESSAGES } from '../../utils/messages';
+import { IconComponent } from '../../components/icon/icon';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, IconComponent],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
