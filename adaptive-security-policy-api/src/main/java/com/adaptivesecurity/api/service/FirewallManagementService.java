@@ -25,6 +25,25 @@ public class FirewallManagementService {
         return executeAllIdempotent(commands, ipAddress);
     }
 
+    /**
+     * Port knocking — opens the protected port for a single IP by inserting an ACCEPT
+     * rule at the top of INPUT (above the default DROP). Returns true on success.
+     */
+    public boolean openPort(String ipAddress, int port) {
+        String cmd = StringUtils.formatString(AppConstants.IPTABLES_OPEN_PORT, ipAddress, port);
+        String result = commandExecutor.execute(cmd);
+        return !result.startsWith("Warning") && !result.startsWith("Internal error");
+    }
+
+    /**
+     * Port knocking — removes the per-IP ACCEPT rule (best effort; a missing rule is harmless).
+     * Established sessions survive thanks to the conntrack ESTABLISHED,RELATED rule.
+     */
+    public void closePort(String ipAddress, int port) {
+        String cmd = StringUtils.formatString(AppConstants.IPTABLES_CLOSE_PORT, ipAddress, port);
+        commandExecutor.execute(cmd);
+    }
+
     private List<String> buildCommands(String action, String ipAddress, String chain) {
         List<String> commands = new ArrayList<>();
         if (chain.equals("INPUT") || chain.equals("ALL")) {

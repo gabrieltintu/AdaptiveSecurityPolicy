@@ -4,7 +4,7 @@ import { Subject } from 'rxjs';
 export interface AlertEvent {
   ipAddress: string;
   failedAttempts: number;
-  status: 'WARNING' | 'BLOCKED';
+  status: 'WARNING' | 'BLOCKED' | 'KNOCK';
   message: string;
   timestamp: string;
 }

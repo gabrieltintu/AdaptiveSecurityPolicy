@@ -80,6 +80,15 @@ public class AdaptiveSecurityScheduler {
     }
 
     /**
+     * Marks an IP as blocked in the in-memory state (used after a manual block via the API)
+     * so it shows as BLOCKED in the frontend and the scheduler treats it as already handled.
+     */
+    public void addBlockedIp(String ip) {
+        blockedIps.add(ip);
+        warnedIps.add(ip);
+    }
+
+    /**
      * Removes an IP from both in-memory sets so the frontend no longer shows it
      * as BLOCKED/WARNING, and the scheduler can re-detect it if it attacks again.
      * Snapshots the current attempt count as a baseline so old log entries don't

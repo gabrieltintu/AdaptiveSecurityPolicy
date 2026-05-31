@@ -20,6 +20,10 @@ public class FirewallController {
     @PostMapping("/block")
     public ResponseEntity<FirewallActionResponse> blockIp(@Valid @RequestBody FirewallActionRequest request) {
         FirewallActionResponse response = firewallManagementService.blockIp(request.getIpAddress(), request.getChain());
+        if (response.isSuccess()) {
+            // Sync in-memory state so the IP shows as BLOCKED in the frontend
+            adaptiveSecurityScheduler.addBlockedIp(request.getIpAddress());
+        }
         return response.isSuccess()
                 ? ResponseEntity.ok(response)
                 : ResponseEntity.internalServerError().body(response);

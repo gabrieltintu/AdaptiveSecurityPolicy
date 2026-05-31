@@ -15,6 +15,11 @@ public final class AppConstants {
     public static final String IPTABLES_FORWARD_SRC  = "sudo iptables %s FORWARD -s %s -j DROP";
     public static final String IPTABLES_FORWARD_DST  = "sudo iptables %s FORWARD -d %s -j DROP";
 
+    // Port knocking — open/close a protected port for a single IP. %s = ip, %d = port
+    // Open inserts at the top of INPUT (above the default DROP); close removes that rule.
+    public static final String IPTABLES_OPEN_PORT    = "sudo iptables -I INPUT 1 -s %s -p tcp --dport %d -j ACCEPT";
+    public static final String IPTABLES_CLOSE_PORT   = "sudo iptables -D INPUT -s %s -p tcp --dport %d -j ACCEPT";
+
     // Brute force detection — %d is replaced with the configurable detection window in minutes
     public static final String AUTH_LOG_CMD              = "journalctl -u ssh -u sshd --since \"%d minutes ago\" --no-pager 2>/dev/null | grep \"Failed password\"";
     public static final String FAILED_PASSWORD_IP_REGEX  = "from (\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}) port";

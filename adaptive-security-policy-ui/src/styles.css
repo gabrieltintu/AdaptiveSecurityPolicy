@@ -177,6 +177,7 @@ button { cursor: pointer; border: none; outline: none; font-family: var(--font);
 
 .status-warning { background: rgba(251,191,36,0.12); color: var(--yellow); border: 1px solid rgba(251,191,36,0.2); }
 .status-blocked { background: rgba(248,113,113,0.12); color: var(--red);    border: 1px solid rgba(248,113,113,0.2); }
+.status-knock   { background: rgba(34,211,238,0.12);  color: var(--cyan);   border: 1px solid rgba(34,211,238,0.2); }
 .badge-green    { background: rgba(52,211,153,0.12);  color: var(--green);  border: 1px solid rgba(52,211,153,0.2); }
 .badge-red      { background: rgba(248,113,113,0.12); color: var(--red);    border: 1px solid rgba(248,113,113,0.2); }
 .badge-purple   { background: rgba(168,85,247,0.12);  color: var(--purple-light); border: 1px solid rgba(168,85,247,0.2); }

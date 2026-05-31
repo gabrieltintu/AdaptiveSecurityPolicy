@@ -15,6 +15,10 @@ export function formatDateTime(date: Date | string): string {
 /**
  * Returns the CSS class for a given alert status.
  */
-export function statusClass(status: 'WARNING' | 'BLOCKED'): string {
-  return status === 'BLOCKED' ? 'status-blocked' : 'status-warning';
+export function statusClass(status: string): string {
+  switch (status) {
+    case 'BLOCKED': return 'status-blocked';
+    case 'KNOCK':   return 'status-knock';
+    default:        return 'status-warning';
+  }
 }

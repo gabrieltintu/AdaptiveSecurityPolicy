@@ -37,4 +37,15 @@ public class WebSocketAlertService {
                 .build();
         messagingTemplate.convertAndSend(ALERTS_TOPIC, event);
     }
+
+    public void sendPortKnockAlert(String ipAddress, int port) {
+        AlertEvent event = AlertEvent.builder()
+                .ipAddress(ipAddress)
+                .failedAttempts(0)
+                .status("KNOCK")
+                .message("Port " + port + " temporarily opened via port knocking for " + ipAddress + ".")
+                .timestamp(LocalDateTime.now())
+                .build();
+        messagingTemplate.convertAndSend(ALERTS_TOPIC, event);
+    }
 }
