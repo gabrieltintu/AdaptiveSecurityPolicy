@@ -14,7 +14,7 @@ import { KEYCLOAK_URL, KEYCLOAK_REALM, KEYCLOAK_CLIENT_ID } from './utils/consta
 
 
 const apiBearerCondition = createInterceptorCondition<IncludeBearerTokenCondition>({
-  urlPattern: /^https?:\/\/192\.168\.64\.4:8090(\/.*)?$/i,
+  urlPattern: /^https?:\/\/localhost:8090(\/.*)?$/i,
   bearerPrefix: 'Bearer',
 });
 
