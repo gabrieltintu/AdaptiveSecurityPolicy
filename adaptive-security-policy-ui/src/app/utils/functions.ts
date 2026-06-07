@@ -22,3 +22,15 @@ export function statusClass(status: string): string {
     default:        return 'status-warning';
   }
 }
+
+export function actionClass(action: string): string {
+  switch (action) {
+    case 'BLOCK':
+    case 'WHITELIST_REMOVE': return 'status-blocked';
+    case 'UNBLOCK':
+    case 'WHITELIST_ADD':    return 'badge-green';
+    case 'KNOCK':            return 'status-knock';
+    case 'CONFIG_CHANGE':    return 'badge-purple';
+    default:                 return 'status-warning';
+  }
+}

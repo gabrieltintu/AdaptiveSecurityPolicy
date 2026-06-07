@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { DashboardComponent }  from './pages/dashboard/dashboard';
 import { MonitoringComponent } from './pages/monitoring/monitoring';
+import { HistoryComponent }    from './pages/history/history';
 import { FirewallComponent }   from './pages/firewall/firewall';
 import { authGuard } from './guards/auth.guard';
 import { adminGuard } from './guards/admin.guard';
@@ -9,5 +10,6 @@ export const routes: Routes = [
   { path: '',           redirectTo: 'dashboard', pathMatch: 'full' },
   { path: 'dashboard',  component: DashboardComponent,  canActivate: [authGuard] },
   { path: 'monitoring', component: MonitoringComponent, canActivate: [authGuard] },
+  { path: 'history',    component: HistoryComponent,    canActivate: [authGuard] },
   { path: 'firewall',   component: FirewallComponent,   canActivate: [adminGuard] },
 ];

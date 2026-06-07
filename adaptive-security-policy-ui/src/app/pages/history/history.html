@@ -1,0 +1,104 @@
+<div class="page">
+
+  <div class="page-header">
+    <h1 class="page-title">History</h1>
+    <p class="page-subtitle">Audit trail of every security action</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="hist-stats">
+    <div class="hist-stat">
+      <div class="hist-stat-icon blue"><app-icon name="activity" [size]="20" /></div>
+      <div>
+        <div class="hist-stat-value">{{ totalElements }}</div>
+        <div class="hist-stat-label">Total Events</div>
+      </div>
+    </div>
+    <div class="hist-stat">
+      <div class="hist-stat-icon red"><app-icon name="ban" [size]="20" /></div>
+      <div>
+        <div class="hist-stat-value">{{ blockCount }}</div>
+        <div class="hist-stat-label">Blocks</div>
+      </div>
+    </div>
+    <div class="hist-stat">
+      <div class="hist-stat-icon yellow"><app-icon name="alert" [size]="20" /></div>
+      <div>
+        <div class="hist-stat-value">{{ warnCount }}</div>
+        <div class="hist-stat-label">Warnings</div>
+      </div>
+    </div>
+    <div class="hist-stat">
+      <div class="hist-stat-icon purple"><app-icon name="shield" [size]="20" /></div>
+      <div>
+        <div class="hist-stat-value">{{ manualCount }}</div>
+        <div class="hist-stat-label">Manual (admin)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Event Log -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Event Log</h2>
+      <button class="btn-ghost" (click)="load()"><app-icon name="refresh" [size]="14" /> Refresh</button>
+    </div>
+
+    <div class="hist-controls">
+      <div class="filter-pills">
+        <button class="filter-pill" [class.active]="actionFilter === 'ALL'" (click)="setFilter('ALL')">All</button>
+        @for (a of availableActions; track a) {
+          <button class="filter-pill" [class.active]="actionFilter === a" (click)="setFilter(a)">{{ a }}</button>
+        }
+      </div>
+      <input class="input hist-search" type="text" placeholder="Search IP, user or details…"
+        [(ngModel)]="query" (ngModelChange)="onSearch()" />
+    </div>
+
+    @if (loading) {
+      <p class="empty">Loading events…</p>
+    } @else if (filtered.length === 0) {
+      <p class="empty">No events match the current filter.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Action</th>
+              <th>Actor</th>
+              <th>IP Address</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (ev of pagedEvents; track ev.id) {
+              <tr>
+                <td class="mono nowrap">{{ formatDateTime(ev.createdAt) }}</td>
+                <td><span class="badge" [class]="actionClass(ev.action)">{{ ev.action }}</span></td>
+                <td>
+                  <span class="actor-name">{{ ev.username }}</span>
+                  <span class="actor-type" [class.system]="ev.userType === 'SYSTEM'">{{ ev.userType }}</span>
+                </td>
+                <td class="mono">{{ ev.ipAddress || '—' }}</td>
+                <td class="details">{{ ev.details || '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination">
+        <span class="page-info">
+          {{ filtered.length }} result{{ filtered.length === 1 ? '' : 's' }}
+          @if (totalElements > events.length) { · latest {{ events.length }} loaded }
+          · page {{ currentPage + 1 }} of {{ totalPages }}
+        </span>
+        <div class="page-btns">
+          <button class="btn-ghost" [disabled]="currentPage === 0" (click)="prev()">Prev</button>
+          <button class="btn-ghost" [disabled]="currentPage >= totalPages - 1" (click)="next()">Next</button>
+        </div>
+      </div>
+    }
+  </div>
+</div>
