@@ -31,11 +31,29 @@ need curl
 need jq
 
 get_token() {
-  curl -s -X POST "${KEYCLOAK_URL}/realms/${REALM}/protocol/openid-connect/token" \
+  local resp tok err
+  resp=$(curl -s -X POST "${KEYCLOAK_URL}/realms/${REALM}/protocol/openid-connect/token" \
     -d "client_id=${CLIENT_ID}" \
     -d "grant_type=password" \
     -d "username=$1" \
-    -d "password=$2" | jq -r '.access_token // empty'
+    -d "password=$2")
+  tok=$(printf '%s' "$resp" | jq -r '.access_token // empty')
+  if [ -z "$tok" ]; then
+    err=$(printf '%s' "$resp" | jq -r '.error_description // .error // "raspuns necunoscut"')
+    echo "  ${YELLOW}token pentru '$1' a esuat: ${err}${RESET}" >&2
+  fi
+  printf '%s' "$tok"
+}
+
+decode_payload() {
+  local p
+  p=$(printf '%s' "$1" | cut -d. -f2 | tr '_-' '/+')
+  while [ $(( ${#p} % 4 )) -ne 0 ]; do p="${p}="; done
+  printf '%s' "$p" | base64 -d 2>/dev/null
+}
+
+token_roles() {
+  decode_payload "$1" | jq -rc '.realm_access.roles // []'
 }
 
 http_status() {
@@ -75,10 +93,13 @@ if [ -z "$ADMIN_TOKEN" ]; then
   exit 1
 fi
 
+echo "  roluri in token ADMIN:   $(token_roles "$ADMIN_TOKEN")"
+
 if [ -z "$DEFAULT_TOKEN" ] && [ -n "$DEFAULT_PASS" ]; then
   echo "Obtin token DEFAULT pentru '${DEFAULT_USER}'..."
   DEFAULT_TOKEN="$(get_token "$DEFAULT_USER" "$DEFAULT_PASS")"
 fi
+[ -n "$DEFAULT_TOKEN" ] && echo "  roluri in token DEFAULT: $(token_roles "$DEFAULT_TOKEN")"
 echo
 
 block_body="{\"ipAddress\":\"${TEST_IP}\",\"chain\":\"${TEST_CHAIN}\"}"
