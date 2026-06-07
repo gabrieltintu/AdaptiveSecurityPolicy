@@ -6,6 +6,19 @@
   <ul class="navbar-links">
     <li><a routerLink="/dashboard"  routerLinkActive="active">Overview</a></li>
     <li><a routerLink="/monitoring" routerLinkActive="active">Monitoring</a></li>
-    <li><a routerLink="/firewall"   routerLinkActive="active">Firewall</a></li>
+    @if (isAdmin) {
+      <li><a routerLink="/firewall" routerLinkActive="active">Firewall</a></li>
+    }
   </ul>
+  <div class="navbar-user">
+    @if (username) {
+      <span class="navbar-username">{{ username }}</span>
+    }
+    @if (isAdmin) {
+      <span class="navbar-role">admin</span>
+    }
+    <button class="navbar-logout" (click)="logout()">
+      <app-icon name="logout" [size]="15" /> Logout
+    </button>
+  </div>
 </nav>

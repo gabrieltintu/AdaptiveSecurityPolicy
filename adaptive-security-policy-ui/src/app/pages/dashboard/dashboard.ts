@@ -1,6 +1,7 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
+import Keycloak from 'keycloak-js';
 
 import { MonitoringService, SuspiciousIpInfo } from '../../services/monitoring.service';
 import { FirewallService } from '../../services/firewall.service';
@@ -18,6 +19,9 @@ import { IconComponent } from '../../components/icon/icon';
   styleUrl: './dashboard.css'
 })
 export class DashboardComponent implements OnInit, OnDestroy {
+
+  private readonly keycloak = inject(Keycloak);
+  readonly isAdmin = this.keycloak.hasRealmRole('ADMIN');
 
   connectionsCount = 0;
   rulesCount       = 0;

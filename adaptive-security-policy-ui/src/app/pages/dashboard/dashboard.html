@@ -57,7 +57,7 @@
                 <span class="threat-ip">{{ ip.ipAddress }}</span>
                 <span class="threat-attempts">{{ ip.failedAttempts }} attempts</span>
               </div>
-              @if (ip.status === 'BLOCKED') {
+              @if (ip.status === 'BLOCKED' && isAdmin) {
                 <button class="btn btn-sm btn-ghost" (click)="unblockIp(ip.ipAddress)">Unblock</button>
               }
             </div>
