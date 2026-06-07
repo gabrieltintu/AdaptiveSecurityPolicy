@@ -19,5 +19,7 @@ public interface BlockRecordRepository extends JpaRepository<BlockRecord, Long> 
     /** How many times this IP has been blocked — drives repeat-offender escalation. */
     long countByTrackedIp(TrackedIp trackedIp);
 
+    List<BlockRecord> findByTrackedIpAndStatus(TrackedIp trackedIp, BlockStatus status);
+
     Optional<BlockRecord> findFirstByTrackedIpAndStatusOrderByBlockedAtDesc(TrackedIp trackedIp, BlockStatus status);
 }

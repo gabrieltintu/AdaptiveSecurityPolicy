@@ -1,9 +1,14 @@
 package com.adaptivesecurity.api.service;
 
 import com.adaptivesecurity.api.dto.SuspiciousIpInfo;
+import com.adaptivesecurity.api.entity.TrackedIp;
+import com.adaptivesecurity.api.entity.enums.BlockSource;
+import com.adaptivesecurity.api.entity.enums.IpStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -23,6 +28,7 @@ public class AdaptiveSecurityScheduler {
     private final FirewallManagementService firewallManagementService;
     private final AlertService alertService;
     private final WebSocketAlertService webSocketAlertService;
+    private final SecurityPersistenceService persistence;
 
     @Value("${security.brute-force.warning-threshold}")
     private int warningThreshold;
@@ -36,8 +42,31 @@ public class AdaptiveSecurityScheduler {
     // Attempt count at the moment of unblock — used to compute net new attempts after unblock
     private final ConcurrentMap<String, Integer> attemptBaseline = new ConcurrentHashMap<>();
 
+    private volatile boolean ready = false;
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void seedFromDb() {
+        for (TrackedIp trackedIp : persistence.findAllTrackedIps()) {
+            String ip = trackedIp.getIpAddress();
+            if (trackedIp.getCurrentStatus() == IpStatus.BLOCKED) {
+                blockedIps.add(ip);
+                warnedIps.add(ip);
+            } else if (trackedIp.getCurrentStatus() == IpStatus.WARNING) {
+                warnedIps.add(ip);
+            }
+            if (trackedIp.getAttemptBaseline() > 0) {
+                attemptBaseline.put(ip, trackedIp.getAttemptBaseline());
+            }
+        }
+        ready = true;
+        log.info("Seeded security state from DB: {} blocked, {} warned IPs", blockedIps.size(), warnedIps.size());
+    }
+
     @Scheduled(fixedRateString = "${security.brute-force.scheduler-interval-ms}")
     public void scan() {
+        if (!ready) {
+            return;
+        }
         Map<String, Integer> failedAttempts = bruteForceDetectionService.getFailedAttemptsByIp();
 
         for (Map.Entry<String, Integer> entry : failedAttempts.entrySet()) {
@@ -58,11 +87,14 @@ public class AdaptiveSecurityScheduler {
                 blockedIps.add(ip);
                 warnedIps.add(ip);
                 trySendEmail(() -> alertService.sendBlockAlert(info), ip, "block");
+                tryPersist(() -> persistence.recordBlock(ip, "ALL", BlockSource.AUTO,
+                        "Auto-block after " + count + " failed SSH login attempts", count, Actor.system()), ip, "block");
 
             } else if (count >= warningThreshold && !warnedIps.contains(ip)) {
                 webSocketAlertService.sendWarningAlert(info);
                 warnedIps.add(ip);
                 trySendEmail(() -> alertService.sendWarningAlert(info), ip, "warning");
+                tryPersist(() -> persistence.recordWarning(ip, count, Actor.system()), ip, "warning");
             }
         }
     }
@@ -73,6 +105,18 @@ public class AdaptiveSecurityScheduler {
         } catch (Exception e) {
             log.warn("Email alert ({}) failed for IP {} — {}", type, ip, e.getMessage());
         }
+    }
+
+    private void tryPersist(Runnable persistAction, String ip, String type) {
+        try {
+            persistAction.run();
+        } catch (Exception e) {
+            log.warn("DB persistence ({}) failed for IP {} — {}", type, ip, e.getMessage());
+        }
+    }
+
+    public int baselineFor(String ip) {
+        return attemptBaseline.getOrDefault(ip, 0);
     }
 
     public Set<String> getBlockedIps() {
