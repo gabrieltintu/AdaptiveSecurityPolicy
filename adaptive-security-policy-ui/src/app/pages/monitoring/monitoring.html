@@ -9,9 +9,9 @@
     <div class="card-header">
       <h2 class="card-title">Network Connections</h2>
       <div class="card-actions">
+        <button class="btn-ghost" (click)="load()"><app-icon name="refresh" [size]="14" /> Refresh</button>
         <input class="input table-search" type="text" placeholder="Search…"
           [(ngModel)]="connQuery" (ngModelChange)="onConnSearch()" />
-        <button class="btn-ghost" (click)="load()"><app-icon name="refresh" [size]="14" /> Refresh</button>
       </div>
     </div>
     <div class="table-wrap">
@@ -51,14 +51,16 @@
   </div>
 
   <div class="card">
-    <div class="card-header">
-      <div class="header-left">
-        <h2 class="card-title">Firewall Rules</h2>
-        <span class="rules-count badge badge-purple">{{ filteredRules.length }} rules</span>
-      </div>
-      <div class="card-actions">
+    <div class="card-header firewall-header">
+      <div class="header-left-stacked">
+        <div class="header-left">
+          <h2 class="card-title">Firewall Rules</h2>
+          <span class="rules-count badge badge-purple">{{ filteredRules.length }} rules</span>
+        </div>
         <p-select [options]="chainOptions" optionLabel="label" optionValue="value"
           [(ngModel)]="fwChain" (onChange)="onFwChange()" styleClass="chain-select" />
+      </div>
+      <div class="card-actions">
         <input class="input table-search" type="text" placeholder="Search…"
           [(ngModel)]="fwQuery" (ngModelChange)="onFwChange()" />
       </div>

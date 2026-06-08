@@ -39,3 +39,14 @@
 .page-btns { display: flex; gap: 8px; }
 
 .page-btns .btn-ghost:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.firewall-header {
+  align-items: flex-start !important;
+}
+
+.header-left-stacked {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+}
