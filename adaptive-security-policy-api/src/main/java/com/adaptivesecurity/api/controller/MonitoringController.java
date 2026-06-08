@@ -7,7 +7,6 @@ import com.adaptivesecurity.api.service.AdaptiveSecurityScheduler;
 import com.adaptivesecurity.api.service.BruteForceDetectionService;
 import com.adaptivesecurity.api.service.NetworkMonitoringService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,9 +22,6 @@ public class MonitoringController {
     private final BruteForceDetectionService bruteForceDetectionService;
     private final AdaptiveSecurityScheduler adaptiveSecurityScheduler;
 
-    @Value("${security.brute-force.warning-threshold}")
-    private int warningThreshold;
-
     @GetMapping("/connections")
     public List<NetworkConnection> getConnections() {
         return monitoringService.getActiveConnections();
@@ -38,6 +34,6 @@ public class MonitoringController {
 
     @GetMapping("/suspicious-ips")
     public List<SuspiciousIpInfo> getSuspiciousIps() {
-        return bruteForceDetectionService.getSuspiciousIps(warningThreshold, adaptiveSecurityScheduler.getBlockedIps());
+        return bruteForceDetectionService.getSuspiciousIps(adaptiveSecurityScheduler.getBlockedIps());
     }
 }

@@ -61,10 +61,6 @@ public class TrackedIp {
     @Column(name = "threat_score")
     private Integer threatScore;
 
-    @Column(nullable = false)
-    @Builder.Default
-    private boolean whitelisted = false;
-
     @Column(name = "first_seen", nullable = false, updatable = false)
     @Builder.Default
     private OffsetDateTime firstSeen = OffsetDateTime.now();

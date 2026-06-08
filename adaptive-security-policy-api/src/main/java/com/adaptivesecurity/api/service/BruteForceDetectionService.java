@@ -3,7 +3,6 @@ package com.adaptivesecurity.api.service;
 import com.adaptivesecurity.api.dto.SuspiciousIpInfo;
 import com.adaptivesecurity.api.utils.AppConstants;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -19,9 +18,7 @@ import java.util.regex.Pattern;
 public class BruteForceDetectionService {
 
     private final CommandExecutorService commandExecutor;
-
-    @Value("${security.brute-force.detection-window-minutes:60}")
-    private int detectionWindowMinutes;
+    private final PolicyService policyService;
 
     private static final Pattern IP_PATTERN = Pattern.compile(AppConstants.FAILED_PASSWORD_IP_REGEX);
 
@@ -30,7 +27,7 @@ public class BruteForceDetectionService {
      * Using a sliding window prevents stale log entries from causing permanent re-blocks.
      */
     public Map<String, Integer> getFailedAttemptsByIp() {
-        String cmd    = String.format(AppConstants.AUTH_LOG_CMD, detectionWindowMinutes);
+        String cmd    = String.format(AppConstants.AUTH_LOG_CMD, policyService.detectionWindowMinutes());
         String output = commandExecutor.execute(cmd);
         Map<String, Integer> attempts = new HashMap<>();
 
@@ -53,7 +50,8 @@ public class BruteForceDetectionService {
     /**
      * Returns all IPs that exceeded the warning threshold, enriched with their current status.
      */
-    public List<SuspiciousIpInfo> getSuspiciousIps(int warningThreshold, Set<String> blockedIps) {
+    public List<SuspiciousIpInfo> getSuspiciousIps(Set<String> blockedIps) {
+        int warningThreshold = policyService.warningThreshold();
         return getFailedAttemptsByIp().entrySet().stream()
                 .filter(e -> e.getValue() >= warningThreshold)
                 .map(e -> SuspiciousIpInfo.builder()

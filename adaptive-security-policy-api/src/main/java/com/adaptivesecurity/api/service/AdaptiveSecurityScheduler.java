@@ -6,7 +6,6 @@ import com.adaptivesecurity.api.entity.enums.BlockSource;
 import com.adaptivesecurity.api.entity.enums.IpStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -29,12 +28,8 @@ public class AdaptiveSecurityScheduler {
     private final AlertService alertService;
     private final WebSocketAlertService webSocketAlertService;
     private final SecurityPersistenceService persistence;
-
-    @Value("${security.brute-force.warning-threshold}")
-    private int warningThreshold;
-
-    @Value("${security.brute-force.block-threshold}")
-    private int blockThreshold;
+    private final PolicyService policyService;
+    private final WhitelistService whitelistService;
 
     // In-memory state — resets on app restart (replaced by DB in future)
     private final Set<String>             warnedIps      = ConcurrentHashMap.newKeySet();
@@ -69,8 +64,16 @@ public class AdaptiveSecurityScheduler {
         }
         Map<String, Integer> failedAttempts = bruteForceDetectionService.getFailedAttemptsByIp();
 
+        int     warningThreshold = policyService.warningThreshold();
+        int     blockThreshold   = policyService.blockThreshold();
+        boolean autoBlock        = policyService.autoBlockEnabled();
+
         for (Map.Entry<String, Integer> entry : failedAttempts.entrySet()) {
             String ip    = entry.getKey();
+            // Whitelisted IPs are never auto-warned or auto-blocked
+            if (whitelistService.isWhitelisted(ip)) {
+                continue;
+            }
             int    raw   = entry.getValue();
             // Subtract attempts that existed before the last unblock so the IP isn't immediately re-blocked
             int    count = Math.max(0, raw - attemptBaseline.getOrDefault(ip, 0));
@@ -81,7 +84,7 @@ public class AdaptiveSecurityScheduler {
                     .detectedAt(LocalDateTime.now())
                     .build();
 
-            if (count >= blockThreshold && !blockedIps.contains(ip)) {
+            if (autoBlock && count >= blockThreshold && !blockedIps.contains(ip)) {
                 firewallManagementService.blockIp(ip, "ALL");
                 webSocketAlertService.sendBlockAlert(info);
                 blockedIps.add(ip);

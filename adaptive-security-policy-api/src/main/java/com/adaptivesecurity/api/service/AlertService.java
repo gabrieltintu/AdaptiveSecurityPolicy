@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 public class AlertService {
 
     private final JavaMailSender mailSender;
+    private final PolicyService policyService;
 
     @Value("#{'${security.alerts.recipients}'.split(',')}")
     private String[] recipients;
@@ -24,24 +25,18 @@ public class AlertService {
     @Value("${spring.mail.username}")
     private String from;
 
-    @Value("${security.brute-force.warning-threshold}")
-    private int warningThreshold;
-
-    @Value("${security.brute-force.block-threshold}")
-    private int blockThreshold;
-
     public void sendWarningAlert(SuspiciousIpInfo info) {
         String subject = StringUtils.formatString(AppConstants.WARNING_EMAIL_SUBJECT, info.getIpAddress());
         String body = StringUtils.formatString(AppConstants.WARNING_EMAIL_BODY,
-                info.getIpAddress(), info.getFailedAttempts(), warningThreshold,
-                info.getDetectedAt(), blockThreshold, consoleUrl);
+                info.getIpAddress(), info.getFailedAttempts(), policyService.warningThreshold(),
+                info.getDetectedAt(), policyService.blockThreshold(), consoleUrl);
         sendEmail(subject, body);
     }
 
     public void sendBlockAlert(SuspiciousIpInfo info) {
         String subject = StringUtils.formatString(AppConstants.BLOCK_EMAIL_SUBJECT, info.getIpAddress());
         String body = StringUtils.formatString(AppConstants.BLOCK_EMAIL_BODY,
-                info.getIpAddress(), info.getFailedAttempts(), blockThreshold,
+                info.getIpAddress(), info.getFailedAttempts(), policyService.blockThreshold(),
                 info.getDetectedAt(), consoleUrl);
         sendEmail(subject, body);
     }

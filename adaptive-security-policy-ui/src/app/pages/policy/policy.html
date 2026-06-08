@@ -1,0 +1,107 @@
+<div class="page">
+
+  <div class="page-header">
+    <h1 class="page-title">Policy</h1>
+    <p class="page-subtitle">Tune the adaptive thresholds and manage trusted IPs</p>
+  </div>
+
+  <div class="policy-grid">
+
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Adaptive Policy</h2>
+        <span class="badge" [class.badge-green]="autoBlockEnabled" [class.status-warning]="!autoBlockEnabled">
+          {{ autoBlockEnabled ? 'Auto-block ON' : 'Auto-block OFF' }}
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Warning threshold</label>
+        <input class="input" type="number" min="1" [(ngModel)]="warningThreshold" />
+        <span class="field-hint">Number of failed attempts before an IP is flagged as suspicious.</span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Block threshold</label>
+        <input class="input" type="number" min="1" [(ngModel)]="blockThreshold" />
+        <span class="field-hint">Number of failed attempts before an IP is auto-blocked.</span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Detection window (minutes)</label>
+        <input class="input" type="number" min="1" [(ngModel)]="detectionWindowMinutes" />
+        <span class="field-hint">Only failed attempts within this window are counted.</span>
+      </div>
+
+      <div class="toggle-row">
+        <div class="toggle-text">
+          <span class="toggle-title">Automatic blocking</span>
+          <span class="field-hint">When off, suspicious IPs are still flagged but never auto-blocked.</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" [(ngModel)]="autoBlockEnabled" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      @if (thresholdInvalid) {
+        <p class="action-msg">Warning threshold must be lower than block threshold.</p>
+      }
+
+      <button class="btn btn-primary btn-block" (click)="savePolicy()" [disabled]="saving || thresholdInvalid">
+        <app-icon name="save" [size]="16" /> {{ saving ? 'Saving…' : 'Save Changes' }}
+      </button>
+
+      @if (policyMsg) {
+        <p class="action-msg" [class.success]="policySuccess">{{ policyMsg }}</p>
+      }
+
+      @if (updatedAt) {
+        <p class="policy-meta">Last updated by <strong>{{ updatedBy || 'system' }}</strong> · {{ formatDateTime(updatedAt) }}</p>
+      }
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">IP Whitelist</h2>
+        <span class="badge badge-green">{{ whitelist.length }}</span>
+      </div>
+
+      <p class="wl-intro">Whitelisted IPs are never auto-warned or auto-blocked. You can still block them manually from the Firewall page.</p>
+
+      <div class="wl-form">
+        <input class="input wl-ip" type="text" placeholder="IP address e.g. 192.168.1.50"
+          [(ngModel)]="wlIp" (keyup.enter)="addWhitelist()" />
+        <input class="input wl-note" type="text" placeholder="Note (optional)"
+          [(ngModel)]="wlNote" (keyup.enter)="addWhitelist()" />
+        <button class="btn btn-primary wl-add" (click)="addWhitelist()">
+          <app-icon name="plus" [size]="16" /> Add
+        </button>
+      </div>
+
+      @if (wlMsg) {
+        <p class="action-msg" [class.success]="wlSuccess">{{ wlMsg }}</p>
+      }
+
+      @if (whitelist.length === 0) {
+        <p class="empty">No whitelisted IPs.</p>
+      } @else {
+        <div class="wl-list">
+          @for (entry of whitelist; track entry.id) {
+            <div class="wl-row">
+              <div class="wl-info">
+                <span class="wl-addr mono">{{ entry.ipAddress }}</span>
+                @if (entry.note) {
+                  <span class="wl-note-text">{{ entry.note }}</span>
+                }
+                <span class="wl-meta">added by {{ entry.addedBy || 'system' }} · {{ formatDateTime(entry.createdAt) }}</span>
+              </div>
+              <button class="btn btn-sm btn-ghost" (click)="removeWhitelist(entry)">Remove</button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+  </div>
+</div>
