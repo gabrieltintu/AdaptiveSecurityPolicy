@@ -24,11 +24,6 @@ public class SecurityPersistenceService {
     private final AuditService auditService;
 
     @Transactional(readOnly = true)
-    public boolean isWhitelisted(String ipAddress) {
-        return trackedIpRepository.existsByIpAddressAndWhitelistedTrue(ipAddress);
-    }
-
-    @Transactional(readOnly = true)
     public List<TrackedIp> findAllTrackedIps() {
         return trackedIpRepository.findAll();
     }
