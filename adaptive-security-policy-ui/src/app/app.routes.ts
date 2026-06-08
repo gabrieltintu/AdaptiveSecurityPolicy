@@ -11,8 +11,8 @@ export const routes: Routes = [
   { path: '',           redirectTo: 'dashboard', pathMatch: 'full' },
   { path: 'dashboard',  component: DashboardComponent,  canActivate: [authGuard] },
   { path: 'monitoring', component: MonitoringComponent, canActivate: [authGuard] },
-  { path: 'history',    component: HistoryComponent,    canActivate: [authGuard] },
+  { path: 'history',    component: HistoryComponent,    canActivate: [adminGuard] },
   { path: 'firewall',   component: FirewallComponent,   canActivate: [adminGuard] },
   { path: 'policy',     component: PolicyComponent,     canActivate: [adminGuard] },
-  { path: 'analytics',  canActivate: [adminGuard], loadComponent: () => import('./pages/analytics/analytics').then(m => m.AnalyticsComponent) },
+  { path: 'analytics',  canActivate: [authGuard], loadComponent: () => import('./pages/analytics/analytics').then(m => m.AnalyticsComponent) },
 ];

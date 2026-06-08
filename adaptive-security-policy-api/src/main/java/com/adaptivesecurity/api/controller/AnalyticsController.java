@@ -3,7 +3,6 @@ package com.adaptivesecurity.api.controller;
 import com.adaptivesecurity.api.dto.AnalyticsOverview;
 import com.adaptivesecurity.api.service.AnalyticsService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -17,7 +16,6 @@ public class AnalyticsController {
     private final AnalyticsService analyticsService;
 
     @GetMapping("/overview")
-    @PreAuthorize("hasRole('ADMIN')")
     public AnalyticsOverview overview(@RequestParam(defaultValue = "14") int days) {
         return analyticsService.overview(days);
     }
