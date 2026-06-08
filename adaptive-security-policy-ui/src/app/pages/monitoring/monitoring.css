@@ -2,7 +2,17 @@
 
 .table-search { max-width: 220px; }
 
-.table-select { width: auto; padding-right: 30px; cursor: pointer; }
+.table-select { width: auto; padding-right: 30px; cursor: pointer; color: var(--text-primary); }
+
+.table-select option {
+  background: #140a22;
+  color: var(--text-primary);
+}
+
+.table-select option:checked {
+  background: rgba(168, 85, 247, 0.3);
+  color: var(--text-primary);
+}
 
 .pagination {
   display: flex;
