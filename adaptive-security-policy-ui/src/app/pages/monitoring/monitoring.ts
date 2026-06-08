@@ -1,13 +1,14 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { SelectModule } from 'primeng/select';
 import { MonitoringService, NetworkConnection, FirewallRule } from '../../services/monitoring.service';
 import { IconComponent } from '../../components/icon/icon';
 
 @Component({
   selector: 'app-monitoring',
   standalone: true,
-  imports: [CommonModule, FormsModule, IconComponent],
+  imports: [CommonModule, FormsModule, SelectModule, IconComponent],
   templateUrl: './monitoring.html',
   styleUrl: './monitoring.css'
 })
@@ -65,6 +66,10 @@ export class MonitoringComponent implements OnInit {
   get chains(): string[] {
     const present = Array.from(new Set(this.firewallRules.map(r => r.chain))).sort();
     return ['ALL', ...present];
+  }
+
+  get chainOptions(): { label: string; value: string }[] {
+    return this.chains.map(c => ({ label: c === 'ALL' ? 'All chains' : c, value: c }));
   }
 
   get filteredRules(): FirewallRule[] {

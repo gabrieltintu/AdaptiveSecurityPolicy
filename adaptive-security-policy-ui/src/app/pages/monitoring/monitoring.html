@@ -54,11 +54,8 @@
     <div class="card-header">
       <h2 class="card-title">Firewall Rules</h2>
       <div class="card-actions">
-        <select class="input table-select" [(ngModel)]="fwChain" (ngModelChange)="onFwChange()">
-          @for (c of chains; track c) {
-            <option [value]="c">{{ c === 'ALL' ? 'All chains' : c }}</option>
-          }
-        </select>
+        <p-select [options]="chainOptions" optionLabel="label" optionValue="value"
+          [(ngModel)]="fwChain" (onChange)="onFwChange()" styleClass="chain-select" />
         <input class="input table-search" type="text" placeholder="Search…"
           [(ngModel)]="fwQuery" (ngModelChange)="onFwChange()" />
         <span class="rules-count badge badge-purple">{{ filteredRules.length }} rules</span>

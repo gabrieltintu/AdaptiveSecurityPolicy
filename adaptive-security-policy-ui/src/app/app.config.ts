@@ -9,7 +9,10 @@ import {
   includeBearerTokenInterceptor,
 } from 'keycloak-angular';
 
+import { providePrimeNG } from 'primeng/config';
+
 import { routes } from './app.routes';
+import { AspPreset } from './theme/asp-preset';
 import { KEYCLOAK_URL, KEYCLOAK_REALM, KEYCLOAK_CLIENT_ID } from './utils/constants';
 
 
@@ -39,5 +42,11 @@ export const appConfig: ApplicationConfig = {
       provide: INCLUDE_BEARER_TOKEN_INTERCEPTOR_CONFIG,
       useValue: [apiBearerCondition],
     },
+    providePrimeNG({
+      theme: {
+        preset: AspPreset,
+        options: { darkModeSelector: '.app-dark' },
+      },
+    }),
   ],
 };
