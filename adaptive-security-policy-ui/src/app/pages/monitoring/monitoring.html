@@ -52,13 +52,15 @@
 
   <div class="card">
     <div class="card-header">
-      <h2 class="card-title">Firewall Rules</h2>
+      <div class="header-left">
+        <h2 class="card-title">Firewall Rules</h2>
+        <span class="rules-count badge badge-purple">{{ filteredRules.length }} rules</span>
+      </div>
       <div class="card-actions">
         <p-select [options]="chainOptions" optionLabel="label" optionValue="value"
           [(ngModel)]="fwChain" (onChange)="onFwChange()" styleClass="chain-select" />
         <input class="input table-search" type="text" placeholder="Search…"
           [(ngModel)]="fwQuery" (ngModelChange)="onFwChange()" />
-        <span class="rules-count badge badge-purple">{{ filteredRules.length }} rules</span>
       </div>
     </div>
     <div class="table-wrap">
