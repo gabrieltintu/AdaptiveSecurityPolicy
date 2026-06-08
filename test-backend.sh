@@ -18,6 +18,19 @@ TEST_CHAIN="${TEST_CHAIN:-ALL}"
 WHITELIST_IP="${WHITELIST_IP:-198.51.100.200}"
 ANALYTICS_DAYS="${ANALYTICS_DAYS:-14}"
 WITH_DB="${WITH_DB:-0}"
+WITH_KNOCK="${WITH_KNOCK:-0}"
+WITH_SCHEDULER="${WITH_SCHEDULER:-0}"
+KNOCK_HOST="${KNOCK_HOST:-127.0.0.1}"
+read -r -a KNOCK_SEQ <<< "${KNOCK_SEQUENCE:-8936 6027 9417}"
+KNOCK_PROTECTED_PORT="${KNOCK_PROTECTED_PORT:-22}"
+KNOCK_SRC_IP="${KNOCK_SRC_IP:-127.0.0.1}"
+KNOCK_OPEN_SECONDS="${KNOCK_OPEN_SECONDS:-30}"
+KNOCK_TEST_AUTOCLOSE="${KNOCK_TEST_AUTOCLOSE:-0}"
+ATTACK_IP="${ATTACK_IP:-203.0.113.66}"
+SSHD_PORT="${SSHD_PORT:-22}"
+SCHED_INTERVAL_S="${SCHED_INTERVAL_S:-15}"
+ATTACK_DELAY="${ATTACK_DELAY:-0.5}"
+UI_PAUSE="${UI_PAUSE:-20}"
 
 if [ -t 1 ]; then
   GREEN=$'\033[32m'; RED=$'\033[31m'; YELLOW=$'\033[33m'; BOLD=$'\033[1m'; DIM=$'\033[2m'; RESET=$'\033[0m'
@@ -108,6 +121,18 @@ expect() {
 }
 
 is_num() { [[ "$1" =~ ^[0-9]+$ ]] && echo yes || echo no; }
+
+sudo_ok() { sudo -n true 2>/dev/null; }
+
+ipt_has() {
+  sudo -n iptables -S "$1" 2>/dev/null | grep -Eq -- "$2"
+}
+
+ipt_del_accept() {
+  while sudo -n iptables -D INPUT -s "${KNOCK_SRC_IP}" -p tcp --dport "${KNOCK_PROTECTED_PORT}" -j ACCEPT 2>/dev/null; do :; done
+}
+
+knock_once() { timeout 2 bash -c ": </dev/tcp/${KNOCK_HOST}/$1" 2>/dev/null; }
 
 echo "${BOLD}Adaptive Security Policy - test backend (end-to-end)${RESET}"
 echo "  API:        ${API_ORIGIN}"
@@ -272,8 +297,128 @@ http_call POST /api/firewall/unblock "$ADMIN_TOKEN" "$cidr_body"
 expect "POST /firewall/unblock ${TEST_CIDR}" 200
 echo
 
+if [ "$WITH_KNOCK" = "1" ]; then
+  echo "${BOLD}10) Port knocking (secventa ${KNOCK_SEQ[*]} -> deschide portul ${KNOCK_PROTECTED_PORT})${RESET}"
+  if ! sudo_ok; then
+    echo "  ${YELLOW}SKIP - nevoie de sudo fara parola (sudo -n true esueaza).${RESET}"
+  elif [ "${#KNOCK_SEQ[@]}" -lt 1 ]; then
+    echo "  ${YELLOW}SKIP - secventa de knock goala.${RESET}"
+  elif ! ss -ltn 2>/dev/null | grep -Eq ":${KNOCK_SEQ[0]}([^0-9]|$)"; then
+    echo "  ${YELLOW}SKIP - niciun listener pe portul ${KNOCK_SEQ[0]} (port knocking dezactivat sau backend oprit).${RESET}"
+  else
+    drop_re="-s ${KNOCK_SRC_IP}/32 .*--dport ${KNOCK_PROTECTED_PORT} .*ACCEPT"
+    ipt_del_accept
+    if ipt_has INPUT "$drop_re"; then check "regula ACCEPT absenta initial" absent present; else check "regula ACCEPT absenta initial" absent absent; fi
+    for p in "${KNOCK_SEQ[@]}"; do knock_once "$p"; done
+    sleep 2
+    if ipt_has INPUT "$drop_re"; then pg=present; else pg=absent; fi
+    check "secventa CORECTA deschide portul ${KNOCK_PROTECTED_PORT}" present "$pg"
+    if [ "$KNOCK_TEST_AUTOCLOSE" = "1" ] && [ "$pg" = "present" ]; then
+      echo "  ${DIM}astept ${KNOCK_OPEN_SECONDS}s sa se reinchida automat...${RESET}"
+      sleep "$((KNOCK_OPEN_SECONDS+3))"
+      if ipt_has INPUT "$drop_re"; then ac=present; else ac=absent; fi
+      check "portul se reinchide dupa ${KNOCK_OPEN_SECONDS}s" absent "$ac"
+    else
+      ipt_del_accept
+    fi
+    if [ "${#KNOCK_SEQ[@]}" -ge 2 ]; then
+      knock_once "${KNOCK_SEQ[1]}"; knock_once "${KNOCK_SEQ[0]}"
+      sleep 2
+      if ipt_has INPUT "$drop_re"; then ng=present; else ng=absent; fi
+      check "secventa GRESITA nu deschide portul" absent "$ng"
+      ipt_del_accept
+    fi
+  fi
+  echo
+fi
+
+if [ "$WITH_SCHEDULER" = "1" ]; then
+  echo "${BOLD}11) Scheduler - simulare atac SSH (warning -> auto-block) pe ${ATTACK_IP}${RESET}"
+  sched_miss=""
+  command -v ssh     >/dev/null 2>&1 || sched_miss="ssh"
+  command -v sshpass >/dev/null 2>&1 || sched_miss="${sched_miss:+$sched_miss, }sshpass (sudo apt install -y sshpass)"
+  command -v ip      >/dev/null 2>&1 || sched_miss="${sched_miss:+$sched_miss, }iproute2"
+  if [ -n "$sched_miss" ]; then
+    echo "  ${YELLOW}SKIP - lipsesc: ${sched_miss}.${RESET}"
+  elif ! sudo_ok; then
+    echo "  ${YELLOW}SKIP - nevoie de sudo fara parola (sudo -n true esueaza).${RESET}"
+  elif ! sudo -n sshd -T 2>/dev/null | grep -qi '^passwordauthentication yes'; then
+    echo "  ${YELLOW}SKIP - sshd nu accepta parola (PasswordAuthentication) sau nu ruleaza; nu se pot genera linii 'Failed password'.${RESET}"
+  else
+    http_call GET /api/policy "$ADMIN_TOKEN"
+    s_wt=$(jq -r '.warningThreshold' <<<"$HTTP_BODY"); [[ "$s_wt" =~ ^[0-9]+$ ]] || s_wt=3
+    s_bt=$(jq -r '.blockThreshold'   <<<"$HTTP_BODY"); [[ "$s_bt" =~ ^[0-9]+$ ]] || s_bt=6
+    s_dw=$(jq -r '.detectionWindowMinutes' <<<"$HTTP_BODY"); [[ "$s_dw" =~ ^[0-9]+$ ]] || s_dw=60
+    s_ab=$(jq -r '.autoBlockEnabled' <<<"$HTTP_BODY")
+    restore_ab=""
+    if [ "$s_ab" != "true" ]; then
+      http_status PUT /api/policy "$ADMIN_TOKEN" "{\"warningThreshold\":$s_wt,\"blockThreshold\":$s_bt,\"detectionWindowMinutes\":$s_dw,\"autoBlockEnabled\":true}" >/dev/null
+      restore_ab="$s_ab"
+    fi
+    http_call GET /api/whitelist "$ADMIN_TOKEN"
+    wl_id=$(jq -r --arg ip "$ATTACK_IP" '.[]|select(.ipAddress==$ip)|.id' <<<"$HTTP_BODY" 2>/dev/null | head -n1)
+    [[ "$wl_id" =~ ^[0-9]+$ ]] && http_status DELETE "/api/whitelist/${wl_id}" "$ADMIN_TOKEN" >/dev/null
+    http_status POST /api/firewall/unblock "$ADMIN_TOKEN" "{\"ipAddress\":\"$ATTACK_IP\",\"chain\":\"ALL\"}" >/dev/null
+    sudo -n ip addr add "${ATTACK_IP}/32" dev lo 2>/dev/null
+
+    ssh_fail() {
+      sshpass -p 'wrong-asp-pass' ssh \
+        -o PreferredAuthentications=password -o PubkeyAuthentication=no \
+        -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+        -o ConnectTimeout=4 -o NumberOfPasswordPrompts=1 \
+        -b "${ATTACK_IP}" -p "${SSHD_PORT}" \
+        "asp_attacker@${ATTACK_IP}" true >/dev/null 2>&1
+    }
+
+    warnN=$s_wt; [ "$warnN" -ge "$s_bt" ] && warnN=$((s_bt-1)); [ "$warnN" -lt 1 ] && warnN=1
+    echo "  ${DIM}faza A: ${warnN} incercari esuate (prag warning=${s_wt}, block=${s_bt}), delay ${ATTACK_DELAY}s...${RESET}"
+    for ((i=0; i<warnN; i++)); do ssh_fail; sleep "$ATTACK_DELAY"; done
+    seen=$(journalctl -u ssh -u sshd --since "${s_dw} minutes ago" --no-pager 2>/dev/null | grep "Failed password" | grep -c "${ATTACK_IP}")
+    if ! [[ "$seen" =~ ^[0-9]+$ ]] || [ "$seen" -lt 1 ]; then
+      echo "  ${YELLOW}SKIP - jurnalul ssh nu contine 'Failed password ... from ${ATTACK_IP}'.${RESET}"
+      echo "  ${DIM}ultimele linii ssh:${RESET}"
+      journalctl -u ssh -u sshd --since "5 minutes ago" --no-pager 2>/dev/null | tail -n 4
+    else
+      check "jurnal contine atacul ${ATTACK_IP} (>= ${warnN})" yes "$([ "$seen" -ge "$warnN" ] && echo yes || echo no)"
+      echo "  ${DIM}astept un ciclu de scheduler (~${SCHED_INTERVAL_S}s)...${RESET}"
+      sleep "$((SCHED_INTERVAL_S+4))"
+      http_call GET /api/monitoring/suspicious-ips "$ADMIN_TOKEN"
+      st=$(jq -r --arg ip "$ATTACK_IP" '.[]|select(.ipAddress==$ip)|.status' <<<"$HTTP_BODY" 2>/dev/null | head -n1)
+      check "IP detectat ca suspect dupa atac usor" WARNING "${st:-LIPSA}"
+      if ipt_has INPUT "-s ${ATTACK_IP}/32 -j DROP"; then wdrop=present; else wdrop=absent; fi
+      check "fara DROP in faza de warning" absent "$wdrop"
+
+      if [ "$UI_PAUSE" != "0" ]; then
+        echo "  ${YELLOW}>> Verifica UI-ul ACUM: ${ATTACK_IP} ar trebui sa fie WARNING. Continui in ${UI_PAUSE}s cu faza de block...${RESET}"
+        sleep "$UI_PAUSE"
+      fi
+
+      moreN=$(( s_bt - warnN )); [ "$moreN" -lt 1 ] && moreN=1
+      echo "  ${DIM}faza B: inca ${moreN} incercari (total ${s_bt} = pragul de block) -> UI ar trebui sa treaca in BLOCKED...${RESET}"
+      for ((i=0; i<moreN; i++)); do ssh_fail; sleep "$ATTACK_DELAY"; done
+      echo "  ${DIM}astept inca un ciclu de scheduler (~${SCHED_INTERVAL_S}s)...${RESET}"
+      sleep "$((SCHED_INTERVAL_S+4))"
+      http_call GET /api/monitoring/suspicious-ips "$ADMIN_TOKEN"
+      st2=$(jq -r --arg ip "$ATTACK_IP" '.[]|select(.ipAddress==$ip)|.status' <<<"$HTTP_BODY" 2>/dev/null | head -n1)
+      check "IP escaladat la BLOCKED de scheduler" BLOCKED "${st2:-LIPSA}"
+      if ipt_has INPUT "-s ${ATTACK_IP}/32 -j DROP"; then bdrop=present; else bdrop=absent; fi
+      check "iptables are DROP pentru ${ATTACK_IP}" present "$bdrop"
+      http_call GET '/api/events?page=0&size=50' "$ADMIN_TOKEN"
+      hasauto=$(jq -r --arg ip "$ATTACK_IP" 'any(.. | objects; ((.action? // "" | tostring | test("BLOCK"))) and ((.|tostring|contains($ip))))' <<<"$HTTP_BODY" 2>/dev/null)
+      check "audit are eveniment BLOCK pentru IP" true "${hasauto:-false}"
+      http_status POST /api/firewall/unblock "$ADMIN_TOKEN" "{\"ipAddress\":\"$ATTACK_IP\",\"chain\":\"ALL\"}" >/dev/null
+    fi
+
+    sudo -n ip addr del "${ATTACK_IP}/32" dev lo 2>/dev/null
+    if [ -n "$restore_ab" ]; then
+      http_status PUT /api/policy "$ADMIN_TOKEN" "{\"warningThreshold\":$s_wt,\"blockThreshold\":$s_bt,\"detectionWindowMinutes\":$s_dw,\"autoBlockEnabled\":$restore_ab}" >/dev/null
+    fi
+  fi
+  echo
+fi
+
 if [ "$WITH_DB" = "1" ]; then
-  echo "${BOLD}10) Stare in baza de date (psql)${RESET}"
+  echo "${BOLD}12) Stare in baza de date (psql)${RESET}"
   if command -v psql >/dev/null 2>&1; then
     here="$(cd "$(dirname "$0")" && pwd)"
     [ -f "${here}/.env" ] && { set -a; . "${here}/.env"; set +a; }
@@ -291,5 +436,11 @@ if [ "$WITH_DB" = "1" ]; then
   echo
 fi
 
+if [ "$WITH_KNOCK" != "1" ] || [ "$WITH_SCHEDULER" != "1" ]; then
+  echo "${DIM}Teste de sistem optionale (necesita sudo -n pe VM):${RESET}"
+  [ "$WITH_KNOCK" != "1" ]     && echo "${DIM}  WITH_KNOCK=1      - testeaza port knocking (secventa -> deschide portul)${RESET}"
+  [ "$WITH_SCHEDULER" != "1" ] && echo "${DIM}  WITH_SCHEDULER=1  - simuleaza atac SSH si verifica warning + auto-block (cere sshpass)${RESET}"
+  echo
+fi
 echo "${BOLD}Rezumat:${RESET} ${GREEN}${pass} PASS${RESET}, ${RED}${fail} FAIL${RESET}  ${DIM}(${#TEST_IPS[@]} IP-uri + 1 CIDR exersate)${RESET}"
 [ "$fail" -eq 0 ]
