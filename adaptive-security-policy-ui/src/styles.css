@@ -247,3 +247,69 @@ tbody td { padding: 10px 14px; color: var(--text-secondary); vertical-align: mid
   0%, 100% { opacity: 1; transform: scale(1); }
   50%       { opacity: 0.5; transform: scale(0.85); }
 }
+
+/* ══ PrimeNG Select Override ════════════════════════════════════ */
+
+/* Select Button / Input itself */
+.p-select {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--text-primary) !important;
+  transition: border-color 0.2s, box-shadow 0.2s !important;
+}
+
+.p-select:not(.p-disabled):hover {
+  border-color: var(--glass-border-hover) !important;
+}
+
+.p-select:not(.p-disabled).p-focus {
+  border-color: var(--purple) !important;
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.12) !important;
+}
+
+.p-select-label {
+  color: var(--text-primary) !important;
+  font-size: 0.88rem !important;
+  font-family: var(--font) !important;
+  padding: 10px 16px !important;
+}
+
+.p-select-icon {
+  color: var(--text-secondary) !important;
+  margin-right: 12px !important;
+}
+
+/* Dropdown Panel / Overlay */
+.p-select-overlay {
+  background: #0d0518 !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6) !important;
+  padding: 4px !important;
+}
+
+/* Options / Items in Dropdown */
+.p-select-option {
+  color: var(--text-primary) !important;
+  background: transparent !important;
+  border-radius: var(--radius-sm) !important;
+  font-size: 0.88rem !important;
+  font-family: var(--font) !important;
+  padding: 8px 12px !important;
+  margin: 2px 0 !important;
+  transition: background 0.15s, color 0.15s !important;
+}
+
+/* Selected Option */
+.p-select-option.p-select-option-selected {
+  background: rgba(168, 85, 247, 0.18) !important;
+  color: var(--purple-light) !important;
+}
+
+/* Hover / Focus Option */
+.p-select-option:not(.p-select-option-selected):hover,
+.p-select-option.p-focus {
+  background: var(--glass-hover) !important;
+  color: var(--text-primary) !important;
+}
