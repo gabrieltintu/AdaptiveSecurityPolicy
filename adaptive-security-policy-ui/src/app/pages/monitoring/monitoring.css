@@ -19,7 +19,7 @@
   white-space: nowrap;
 }
 
-.card-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-left: auto; }
+.card-actions { display: flex; align-items: center; gap: 10px; }
 
 .table-search { max-width: 220px; }
 
