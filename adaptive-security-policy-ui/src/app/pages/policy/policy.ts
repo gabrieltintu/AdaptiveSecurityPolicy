@@ -26,6 +26,8 @@ export class PolicyComponent implements OnInit {
   policySuccess = false;
   saving = false;
 
+  private original = { warningThreshold: 0, blockThreshold: 0, detectionWindowMinutes: 0, autoBlockEnabled: true };
+
   whitelist: WhitelistEntry[] = [];
   wlIp = '';
   wlNote = '';
@@ -60,10 +62,23 @@ export class PolicyComponent implements OnInit {
     this.autoBlockEnabled = p.autoBlockEnabled;
     this.updatedAt = p.updatedAt;
     this.updatedBy = p.updatedBy;
+    this.original = {
+      warningThreshold: p.warningThreshold,
+      blockThreshold: p.blockThreshold,
+      detectionWindowMinutes: p.detectionWindowMinutes,
+      autoBlockEnabled: p.autoBlockEnabled
+    };
   }
 
   get thresholdInvalid(): boolean {
     return this.warningThreshold >= this.blockThreshold;
+  }
+
+  get hasChanges(): boolean {
+    return this.warningThreshold !== this.original.warningThreshold
+      || this.blockThreshold !== this.original.blockThreshold
+      || this.detectionWindowMinutes !== this.original.detectionWindowMinutes
+      || this.autoBlockEnabled !== this.original.autoBlockEnabled;
   }
 
   savePolicy(): void {

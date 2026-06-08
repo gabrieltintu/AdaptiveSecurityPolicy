@@ -58,6 +58,15 @@ export class FirewallComponent implements OnInit {
     });
   }
 
+  unblockManual(): void {
+    const ip = this.ipInput.trim();
+    if (!ip) return;
+    this.firewallService.unblockIp({ ipAddress: ip, chain: this.chain }).subscribe({
+      next: res => { this.success = res.success; this.message = res.message; this.ipInput = ''; this.load(); },
+      error: ()  => { this.success = false; this.message = MESSAGES.firewall.unblockError(ip); }
+    });
+  }
+
   blockFromList(ip: string): void {
     this.firewallService.blockIp({ ipAddress: ip, chain: 'ALL' }).subscribe({
       next: res => { this.success = res.success; this.message = res.message; this.load(); },

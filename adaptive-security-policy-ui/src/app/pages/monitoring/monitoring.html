@@ -5,11 +5,14 @@
     <p class="page-subtitle">Live network state and active firewall rules</p>
   </div>
 
-  <!-- Network Connections -->
   <div class="card">
     <div class="card-header">
       <h2 class="card-title">Network Connections</h2>
-      <button class="btn-ghost" (click)="load()"><app-icon name="refresh" [size]="14" /> Refresh</button>
+      <div class="card-actions">
+        <input class="input table-search" type="text" placeholder="Search…"
+          [(ngModel)]="connQuery" (ngModelChange)="onConnSearch()" />
+        <button class="btn-ghost" (click)="load()"><app-icon name="refresh" [size]="14" /> Refresh</button>
+      </div>
     </div>
     <div class="table-wrap">
       <table>
@@ -22,10 +25,10 @@
           </tr>
         </thead>
         <tbody>
-          @if (connections.length === 0) {
+          @if (filteredConnections.length === 0) {
             <tr><td colspan="4"><p class="empty">No connections found.</p></td></tr>
           }
-          @for (conn of connections; track conn.localAddress) {
+          @for (conn of pagedConnections; track $index) {
             <tr>
               <td><span class="tag">{{ conn.protocol }}</span></td>
               <td>{{ conn.state }}</td>
@@ -36,13 +39,30 @@
         </tbody>
       </table>
     </div>
+    @if (filteredConnections.length > 0) {
+      <div class="pagination">
+        <span class="page-info">{{ filteredConnections.length }} result{{ filteredConnections.length === 1 ? '' : 's' }} · page {{ connPage + 1 }} of {{ connTotalPages }}</span>
+        <div class="page-btns">
+          <button class="btn-ghost" [disabled]="connPage === 0" (click)="prevConn()">Prev</button>
+          <button class="btn-ghost" [disabled]="connPage >= connTotalPages - 1" (click)="nextConn()">Next</button>
+        </div>
+      </div>
+    }
   </div>
 
-  <!-- Firewall Rules -->
   <div class="card">
     <div class="card-header">
       <h2 class="card-title">Firewall Rules</h2>
-      <span class="rules-count badge badge-purple">{{ firewallRules.length }} rules</span>
+      <div class="card-actions">
+        <select class="input table-select" [(ngModel)]="fwChain" (ngModelChange)="onFwChange()">
+          @for (c of chains; track c) {
+            <option [value]="c">{{ c === 'ALL' ? 'All chains' : c }}</option>
+          }
+        </select>
+        <input class="input table-search" type="text" placeholder="Search…"
+          [(ngModel)]="fwQuery" (ngModelChange)="onFwChange()" />
+        <span class="rules-count badge badge-purple">{{ filteredRules.length }} rules</span>
+      </div>
     </div>
     <div class="table-wrap">
       <table>
@@ -57,10 +77,10 @@
           </tr>
         </thead>
         <tbody>
-          @if (firewallRules.length === 0) {
+          @if (filteredRules.length === 0) {
             <tr><td colspan="6"><p class="empty">No firewall rules found.</p></td></tr>
           }
-          @for (rule of firewallRules; track $index) {
+          @for (rule of pagedRules; track $index) {
             <tr>
               <td><span class="tag">{{ rule.chain }}</span></td>
               <td>
@@ -79,6 +99,15 @@
         </tbody>
       </table>
     </div>
+    @if (filteredRules.length > 0) {
+      <div class="pagination">
+        <span class="page-info">{{ filteredRules.length }} result{{ filteredRules.length === 1 ? '' : 's' }} · page {{ fwPage + 1 }} of {{ fwTotalPages }}</span>
+        <div class="page-btns">
+          <button class="btn-ghost" [disabled]="fwPage === 0" (click)="prevFw()">Prev</button>
+          <button class="btn-ghost" [disabled]="fwPage >= fwTotalPages - 1" (click)="nextFw()">Next</button>
+        </div>
+      </div>
+    }
   </div>
 
 </div>

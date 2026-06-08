@@ -1,1 +1,20 @@
-/* Page-specific styles only — shared styles are in global styles.css */
+.card-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.table-search { max-width: 220px; }
+
+.table-select { width: auto; padding-right: 30px; cursor: pointer; }
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-top: 12px;
+}
+
+.page-info { font-size: 0.78rem; color: var(--text-muted); }
+
+.page-btns { display: flex; gap: 8px; }
+
+.page-btns .btn-ghost:disabled { opacity: 0.35; cursor: not-allowed; }

@@ -28,7 +28,10 @@
         </div>
       </div>
 
-      <button class="btn btn-primary btn-block" (click)="block()"><app-icon name="ban" [size]="16" /> Block IP</button>
+      <div class="fw-actions">
+        <button class="btn btn-primary btn-block" (click)="block()"><app-icon name="ban" [size]="16" /> Block IP</button>
+        <button class="btn btn-ghost btn-block" (click)="unblockManual()"><app-icon name="shield" [size]="16" /> Unblock IP</button>
+      </div>
 
       @if (message) {
         <p class="action-msg" [class.success]="success">{{ message }}</p>

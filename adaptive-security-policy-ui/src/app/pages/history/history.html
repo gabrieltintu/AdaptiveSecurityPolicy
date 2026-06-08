@@ -80,7 +80,7 @@
                   <span class="actor-name">{{ ev.username }}</span>
                   <span class="actor-type" [class.system]="ev.userType === 'SYSTEM'">{{ ev.userType }}</span>
                 </td>
-                <td class="mono">{{ ev.ipAddress || '—' }}</td>
+                <td class="mono">{{ displayIp(ev) }}</td>
                 <td class="details">{{ ev.details || '—' }}</td>
               </tr>
             }

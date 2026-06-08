@@ -27,6 +27,7 @@ export class HistoryComponent implements OnInit {
   readonly actionOrder = ['BLOCK', 'UNBLOCK', 'WARN', 'KNOCK', 'CONFIG_CHANGE', 'WHITELIST_ADD', 'WHITELIST_REMOVE'];
   readonly formatDateTime = formatDateTime;
   readonly actionClass    = actionClass;
+  private readonly ipInDetails = /\b(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?:\/\d{1,2})?)\b/;
 
   constructor(
     private eventsService: EventsService,
@@ -78,6 +79,12 @@ export class HistoryComponent implements OnInit {
   get blockCount(): number  { return this.events.filter(e => e.action === 'BLOCK').length; }
   get warnCount(): number   { return this.events.filter(e => e.action === 'WARN').length; }
   get manualCount(): number { return this.events.filter(e => e.userType === 'USER').length; }
+
+  displayIp(ev: AuditEvent): string {
+    if (ev.ipAddress) return ev.ipAddress;
+    const match = ev.details?.match(this.ipInDetails);
+    return match ? match[1] : '—';
+  }
 
   setFilter(action: string): void {
     this.actionFilter = action;
