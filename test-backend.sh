@@ -92,6 +92,21 @@ check() {
   fi
 }
 
+expect() {
+  local desc="$1" expected="$2"
+  if [ "$HTTP_CODE" = "$expected" ]; then
+    printf "  ${GREEN}PASS${RESET}  %-50s ${DIM}astept %s, primit %s${RESET}\n" "$desc" "$expected" "$HTTP_CODE"
+    pass=$((pass+1))
+  else
+    printf "  ${RED}FAIL${RESET}  %-50s ${BOLD}astept %s, primit %s${RESET}\n" "$desc" "$expected" "$HTTP_CODE"
+    fail=$((fail+1))
+    local msg
+    msg=$(jq -r '.message // .error // empty' <<<"$HTTP_BODY" 2>/dev/null)
+    [ -z "$msg" ] && msg=$(printf '%s' "$HTTP_BODY" | head -c 400)
+    [ -n "$msg" ] && printf "        ${DIM}-> %s${RESET}\n" "$msg"
+  fi
+}
+
 is_num() { [[ "$1" =~ ^[0-9]+$ ]] && echo yes || echo no; }
 
 echo "${BOLD}Adaptive Security Policy - test backend (end-to-end)${RESET}"
@@ -173,10 +188,12 @@ echo
 echo "${BOLD}4) ADMIN - blocheaza mai multe IP-uri + un CIDR (200)${RESET}"
 for ip in "${TEST_IPS[@]}"; do
   body="{\"ipAddress\":\"${ip}\",\"chain\":\"${TEST_CHAIN}\"}"
-  check "POST /firewall/block ${ip}" 200 "$(http_status POST /api/firewall/block "$ADMIN_TOKEN" "$body")"
+  http_call POST /api/firewall/block "$ADMIN_TOKEN" "$body"
+  expect "POST /firewall/block ${ip}" 200
 done
 cidr_body="{\"ipAddress\":\"${TEST_CIDR}\",\"chain\":\"${TEST_CHAIN}\"}"
-check "POST /firewall/block ${TEST_CIDR}" 200 "$(http_status POST /api/firewall/block "$ADMIN_TOKEN" "$cidr_body")"
+http_call POST /api/firewall/block "$ADMIN_TOKEN" "$cidr_body"
+expect "POST /firewall/block ${TEST_CIDR}" 200
 echo
 
 echo "${BOLD}5) Validare input (400 pe payload invalid, cu token ADMIN)${RESET}"
@@ -191,15 +208,15 @@ http_call GET /api/policy "$ADMIN_TOKEN"
 wt=$(jq -r '.warningThreshold // empty' <<<"$HTTP_BODY")
 bt=$(jq -r '.blockThreshold // empty' <<<"$HTTP_BODY")
 dw=$(jq -r '.detectionWindowMinutes // empty' <<<"$HTTP_BODY")
-ab=$(jq -r '.autoBlockEnabled // empty' <<<"$HTTP_BODY")
-if [[ "$wt" =~ ^[0-9]+$ && "$bt" =~ ^[0-9]+$ && "$dw" =~ ^[0-9]+$ ]]; then
+ab=$(jq -r '.autoBlockEnabled' <<<"$HTTP_BODY")
+if [[ "$wt" =~ ^[0-9]+$ && "$bt" =~ ^[0-9]+$ && "$dw" =~ ^[0-9]+$ && ( "$ab" = "true" || "$ab" = "false" ) ]]; then
   new_bt=$((bt+1))
   if [ "$ab" = "true" ]; then new_ab=false; else new_ab=true; fi
   put_body="{\"warningThreshold\":$wt,\"blockThreshold\":$new_bt,\"detectionWindowMinutes\":$dw,\"autoBlockEnabled\":$new_ab}"
   check "PUT /policy (modifica blockThreshold->${new_bt})" 200 "$(http_status PUT /api/policy "$ADMIN_TOKEN" "$put_body")"
   http_call GET /api/policy "$ADMIN_TOKEN"
   got_bt=$(jq -r '.blockThreshold // empty' <<<"$HTTP_BODY")
-  got_ab=$(jq -r '.autoBlockEnabled // empty' <<<"$HTTP_BODY")
+  got_ab=$(jq -r '.autoBlockEnabled' <<<"$HTTP_BODY")
   check "policy blockThreshold persistat" "$new_bt" "$got_bt"
   check "policy autoBlockEnabled comutat" "$new_ab" "$got_ab"
   restore_body="{\"warningThreshold\":$wt,\"blockThreshold\":$bt,\"detectionWindowMinutes\":$dw,\"autoBlockEnabled\":$ab}"
@@ -248,9 +265,11 @@ echo
 echo "${BOLD}9) ADMIN - debloca IP-urile de test (200, curatare)${RESET}"
 for ip in "${TEST_IPS[@]}"; do
   body="{\"ipAddress\":\"${ip}\",\"chain\":\"${TEST_CHAIN}\"}"
-  check "POST /firewall/unblock ${ip}" 200 "$(http_status POST /api/firewall/unblock "$ADMIN_TOKEN" "$body")"
+  http_call POST /api/firewall/unblock "$ADMIN_TOKEN" "$body"
+  expect "POST /firewall/unblock ${ip}" 200
 done
-check "POST /firewall/unblock ${TEST_CIDR}" 200 "$(http_status POST /api/firewall/unblock "$ADMIN_TOKEN" "$cidr_body")"
+http_call POST /api/firewall/unblock "$ADMIN_TOKEN" "$cidr_body"
+expect "POST /firewall/unblock ${TEST_CIDR}" 200
 echo
 
 if [ "$WITH_DB" = "1" ]; then
