@@ -1,0 +1,95 @@
+<div class="page">
+
+  <div class="page-header analytics-head">
+    <div>
+      <h1 class="page-title">Analytics</h1>
+      <p class="page-subtitle">Security activity insights across the selected window</p>
+    </div>
+    <div class="range-controls">
+      <button class="btn-ghost range-btn" [class.range-active]="days === 7"  (click)="setRange(7)">7d</button>
+      <button class="btn-ghost range-btn" [class.range-active]="days === 14" (click)="setRange(14)">14d</button>
+      <button class="btn-ghost range-btn" [class.range-active]="days === 30" (click)="setRange(30)">30d</button>
+      <button class="btn-ghost" (click)="load()"><app-icon name="refresh" [size]="14" /> Refresh</button>
+    </div>
+  </div>
+
+  @if (loading) {
+    <p class="empty">Loading analytics…</p>
+  } @else if (failed) {
+    <p class="empty">Could not load analytics. Try refreshing.</p>
+  } @else if (overview) {
+
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon red"><app-icon name="ban" [size]="20" /></div>
+        <div>
+          <div class="kpi-value">{{ overview.summary.currentlyBlocked }}</div>
+          <div class="kpi-label">Currently Blocked</div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon yellow"><app-icon name="alert" [size]="20" /></div>
+        <div>
+          <div class="kpi-value">{{ overview.summary.currentlyWarning }}</div>
+          <div class="kpi-label">Under Warning</div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon blue"><app-icon name="activity" [size]="20" /></div>
+        <div>
+          <div class="kpi-value">{{ overview.summary.uniqueIps }}</div>
+          <div class="kpi-label">Unique IPs Tracked</div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon purple"><app-icon name="shield" [size]="20" /></div>
+        <div>
+          <div class="kpi-value">{{ overview.summary.manualActions }}</div>
+          <div class="kpi-label">Manual Actions</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Activity Timeline</h2>
+        <span class="muted-meta">Blocks vs warnings per day</span>
+      </div>
+      <div class="chart-box tall">
+        <app-chart type="line" [data]="timelineData" [options]="timelineOptions" />
+      </div>
+    </div>
+
+    <div class="chart-2col">
+      <div class="card">
+        <div class="card-header"><h2 class="card-title">Action Distribution</h2></div>
+        @if (overview.actionBreakdown.length) {
+          <div class="chart-box"><app-chart type="doughnut" [data]="actionData" [options]="actionOptions" /></div>
+        } @else {
+          <p class="empty">No actions recorded yet.</p>
+        }
+      </div>
+      <div class="card">
+        <div class="card-header"><h2 class="card-title">Automatic vs Manual</h2></div>
+        @if (overview.summary.autoActions + overview.summary.manualActions > 0) {
+          <div class="chart-box"><app-chart type="doughnut" [data]="actorData" [options]="actorOptions" /></div>
+        } @else {
+          <p class="empty">No actions recorded yet.</p>
+        }
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Top Offending IPs</h2>
+        <span class="muted-meta">By block + warning events</span>
+      </div>
+      @if (overview.topIps.length) {
+        <div class="chart-box tall"><app-chart type="bar" [data]="topIpsData" [options]="topIpsOptions" /></div>
+      } @else {
+        <p class="empty">No offending IPs recorded yet.</p>
+      }
+    </div>
+
+  }
+</div>

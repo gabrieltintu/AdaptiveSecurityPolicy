@@ -14,4 +14,5 @@ export const routes: Routes = [
   { path: 'history',    component: HistoryComponent,    canActivate: [authGuard] },
   { path: 'firewall',   component: FirewallComponent,   canActivate: [adminGuard] },
   { path: 'policy',     component: PolicyComponent,     canActivate: [adminGuard] },
+  { path: 'analytics',  canActivate: [adminGuard], loadComponent: () => import('./pages/analytics/analytics').then(m => m.AnalyticsComponent) },
 ];

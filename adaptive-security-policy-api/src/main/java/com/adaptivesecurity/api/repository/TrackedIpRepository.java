@@ -12,4 +12,6 @@ public interface TrackedIpRepository extends JpaRepository<TrackedIp, Long> {
     Optional<TrackedIp> findByIpAddress(String ipAddress);
 
     List<TrackedIp> findByCurrentStatus(IpStatus status);
+
+    long countByCurrentStatus(IpStatus status);
 }
