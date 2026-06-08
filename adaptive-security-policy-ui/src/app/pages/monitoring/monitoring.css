@@ -21,6 +21,8 @@
 
 .card-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
+.card-actions .table-search { margin-left: auto; }
+
 .table-search { max-width: 220px; }
 
 .chain-select { min-width: 160px; }
