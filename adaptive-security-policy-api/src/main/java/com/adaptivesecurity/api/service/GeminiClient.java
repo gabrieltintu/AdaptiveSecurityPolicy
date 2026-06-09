@@ -25,19 +25,17 @@ public class GeminiClient {
             + "an empty actions array.";
 
     private final RestClient restClient;
-    private final ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
     private final String apiKey;
     private final String model;
 
     public GeminiClient(
             @Value("${gemini.base-url}") String baseUrl,
             @Value("${gemini.api-key:}") String apiKey,
-            @Value("${gemini.model}") String model,
-            ObjectMapper objectMapper) {
+            @Value("${gemini.model}") String model) {
         this.restClient = RestClient.builder().baseUrl(baseUrl).build();
         this.apiKey = apiKey;
         this.model = model;
-        this.objectMapper = objectMapper;
     }
 
     public List<RawAction> interpret(String text) {
