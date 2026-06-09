@@ -19,6 +19,9 @@ export class PolicyComponent implements OnInit {
   blockThreshold = 10;
   detectionWindowMinutes = 60;
   autoBlockEnabled = true;
+  sshBruteforceEnabled = true;
+  sshProbeEnabled = true;
+  portScanEnabled = true;
   updatedAt = '';
   updatedBy: string | null = null;
 
@@ -26,7 +29,7 @@ export class PolicyComponent implements OnInit {
   policySuccess = false;
   saving = false;
 
-  private original = { warningThreshold: 0, blockThreshold: 0, detectionWindowMinutes: 0, autoBlockEnabled: true };
+  private original = { warningThreshold: 0, blockThreshold: 0, detectionWindowMinutes: 0, autoBlockEnabled: true, sshBruteforceEnabled: true, sshProbeEnabled: true, portScanEnabled: true };
 
   whitelist: WhitelistEntry[] = [];
   wlIp = '';
@@ -60,13 +63,19 @@ export class PolicyComponent implements OnInit {
     this.blockThreshold = p.blockThreshold;
     this.detectionWindowMinutes = p.detectionWindowMinutes;
     this.autoBlockEnabled = p.autoBlockEnabled;
+    this.sshBruteforceEnabled = p.sshBruteforceEnabled;
+    this.sshProbeEnabled = p.sshProbeEnabled;
+    this.portScanEnabled = p.portScanEnabled;
     this.updatedAt = p.updatedAt;
     this.updatedBy = p.updatedBy;
     this.original = {
       warningThreshold: p.warningThreshold,
       blockThreshold: p.blockThreshold,
       detectionWindowMinutes: p.detectionWindowMinutes,
-      autoBlockEnabled: p.autoBlockEnabled
+      autoBlockEnabled: p.autoBlockEnabled,
+      sshBruteforceEnabled: p.sshBruteforceEnabled,
+      sshProbeEnabled: p.sshProbeEnabled,
+      portScanEnabled: p.portScanEnabled
     };
   }
 
@@ -78,7 +87,10 @@ export class PolicyComponent implements OnInit {
     return this.warningThreshold !== this.original.warningThreshold
       || this.blockThreshold !== this.original.blockThreshold
       || this.detectionWindowMinutes !== this.original.detectionWindowMinutes
-      || this.autoBlockEnabled !== this.original.autoBlockEnabled;
+      || this.autoBlockEnabled !== this.original.autoBlockEnabled
+      || this.sshBruteforceEnabled !== this.original.sshBruteforceEnabled
+      || this.sshProbeEnabled !== this.original.sshProbeEnabled
+      || this.portScanEnabled !== this.original.portScanEnabled;
   }
 
   savePolicy(): void {
@@ -98,7 +110,10 @@ export class PolicyComponent implements OnInit {
       warningThreshold: this.warningThreshold,
       blockThreshold: this.blockThreshold,
       detectionWindowMinutes: this.detectionWindowMinutes,
-      autoBlockEnabled: this.autoBlockEnabled
+      autoBlockEnabled: this.autoBlockEnabled,
+      sshBruteforceEnabled: this.sshBruteforceEnabled,
+      sshProbeEnabled: this.sshProbeEnabled,
+      portScanEnabled: this.portScanEnabled
     }).subscribe({
       next: p => {
         this.applyPolicy(p);

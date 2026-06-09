@@ -44,6 +44,41 @@
         </label>
       </div>
 
+      <span class="form-label detectors-label">Active detectors</span>
+
+      <div class="toggle-row">
+        <div class="toggle-text">
+          <span class="toggle-title">SSH brute-force</span>
+          <span class="field-hint">Repeated failed SSH password attempts.</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" [(ngModel)]="sshBruteforceEnabled" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <div class="toggle-text">
+          <span class="toggle-title">SSH probe</span>
+          <span class="field-hint">Username enumeration ("invalid user" scans).</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" [(ngModel)]="sshProbeEnabled" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <div class="toggle-text">
+          <span class="toggle-title">Port scan</span>
+          <span class="field-hint">IPs hitting many distinct ports (needs the iptables LOG rule).</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" [(ngModel)]="portScanEnabled" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
       @if (thresholdInvalid) {
         <p class="action-msg">Warning threshold must be lower than block threshold.</p>
       }

@@ -1,6 +1,7 @@
 package com.adaptivesecurity.api.service;
 
 import com.adaptivesecurity.api.dto.SuspiciousIpInfo;
+import com.adaptivesecurity.api.service.detection.IpThreat;
 import com.adaptivesecurity.api.entity.TrackedIp;
 import com.adaptivesecurity.api.entity.enums.BlockSource;
 import com.adaptivesecurity.api.entity.enums.IpStatus;
@@ -23,7 +24,7 @@ import java.util.concurrent.ConcurrentMap;
 @RequiredArgsConstructor
 public class AdaptiveSecurityScheduler {
 
-    private final BruteForceDetectionService bruteForceDetectionService;
+    private final DetectionService detectionService;
     private final FirewallManagementService firewallManagementService;
     private final AlertService alertService;
     private final WebSocketAlertService webSocketAlertService;
@@ -62,25 +63,28 @@ public class AdaptiveSecurityScheduler {
         if (!ready) {
             return;
         }
-        Map<String, Integer> failedAttempts = bruteForceDetectionService.getFailedAttemptsByIp();
+        Map<String, IpThreat> threats = detectionService.detect();
 
         int     warningThreshold = policyService.warningThreshold();
         int     blockThreshold   = policyService.blockThreshold();
         boolean autoBlock        = policyService.autoBlockEnabled();
 
-        for (Map.Entry<String, Integer> entry : failedAttempts.entrySet()) {
-            String ip    = entry.getKey();
+        for (Map.Entry<String, IpThreat> entry : threats.entrySet()) {
+            String ip = entry.getKey();
             // Whitelisted IPs are never auto-warned or auto-blocked
             if (whitelistService.isWhitelisted(ip)) {
                 continue;
             }
-            int    raw   = entry.getValue();
-            // Subtract attempts that existed before the last unblock so the IP isn't immediately re-blocked
+            IpThreat threat = entry.getValue();
+            int    raw   = threat.totalCount();
+            // Subtract signals that existed before the last unblock so the IP isn't immediately re-blocked
             int    count = Math.max(0, raw - attemptBaseline.getOrDefault(ip, 0));
+            String sources = String.join(", ", threat.categories());
 
             SuspiciousIpInfo info = SuspiciousIpInfo.builder()
                     .ipAddress(ip)
                     .failedAttempts(count)
+                    .sources(threat.categories())
                     .detectedAt(LocalDateTime.now())
                     .build();
 
@@ -91,13 +95,13 @@ public class AdaptiveSecurityScheduler {
                 warnedIps.add(ip);
                 trySendEmail(() -> alertService.sendBlockAlert(info), ip, "block");
                 tryPersist(() -> persistence.recordBlock(ip, "ALL", BlockSource.AUTO,
-                        "Auto-block after " + count + " failed SSH login attempts", count, Actor.system()), ip, "block");
+                        "Auto-block after " + count + " suspicious signals (" + sources + ")", count, Actor.system()), ip, "block");
 
             } else if (count >= warningThreshold && !warnedIps.contains(ip)) {
                 webSocketAlertService.sendWarningAlert(info);
                 warnedIps.add(ip);
                 trySendEmail(() -> alertService.sendWarningAlert(info), ip, "warning");
-                tryPersist(() -> persistence.recordWarning(ip, count, Actor.system()), ip, "warning");
+                tryPersist(() -> persistence.recordWarning(ip, count, sources, Actor.system()), ip, "warning");
             }
         }
     }
@@ -144,7 +148,7 @@ public class AdaptiveSecurityScheduler {
     public void removeIp(String ip) {
         blockedIps.remove(ip);
         warnedIps.remove(ip);
-        int currentCount = bruteForceDetectionService.getFailedAttemptsByIp().getOrDefault(ip, 0);
+        int currentCount = detectionService.getThreatCountByIp().getOrDefault(ip, 0);
         attemptBaseline.put(ip, currentCount);
     }
 }

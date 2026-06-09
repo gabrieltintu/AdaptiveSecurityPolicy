@@ -37,6 +37,22 @@
 
 .fw-actions { display: flex; flex-direction: column; gap: 10px; }
 
+.ai-form { display: flex; gap: 10px; }
+.ai-form .input { flex: 1; }
+
+.ai-actions { display: flex; flex-direction: column; gap: 8px; }
+
+.ai-action {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+}
+.ai-action.invalid { opacity: 0.55; border-color: rgba(248,113,113,0.4); }
+
+.ai-error { font-size: 0.78rem; color: var(--red); }
+
 .ip-list { display: flex; flex-direction: column; gap: 8px; }
 
 .ip-row {

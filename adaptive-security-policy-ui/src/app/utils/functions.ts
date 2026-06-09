@@ -34,3 +34,12 @@ export function actionClass(action: string): string {
     default:                 return 'status-warning';
   }
 }
+
+export function sourceLabel(source: string): string {
+  switch (source) {
+    case 'SSH_BRUTEFORCE': return 'SSH brute';
+    case 'SSH_PROBE':      return 'SSH probe';
+    case 'PORT_SCAN':      return 'Port scan';
+    default:               return source;
+  }
+}

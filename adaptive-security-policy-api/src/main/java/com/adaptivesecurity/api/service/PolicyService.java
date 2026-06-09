@@ -39,6 +39,15 @@ public class PolicyService {
     @Value("${security.brute-force.auto-block-enabled:true}")
     private boolean defaultAutoBlockEnabled;
 
+    @Value("${security.detectors.ssh-bruteforce.enabled:true}")
+    private boolean defaultSshBruteforceEnabled;
+
+    @Value("${security.detectors.ssh-probe.enabled:true}")
+    private boolean defaultSshProbeEnabled;
+
+    @Value("${security.detectors.port-scan.enabled:true}")
+    private boolean defaultPortScanEnabled;
+
     private volatile SecurityPolicy cache;
 
     @EventListener(ApplicationReadyEvent.class)
@@ -67,6 +76,9 @@ public class PolicyService {
                 .blockThreshold(defaultBlockThreshold)
                 .detectionWindowMinutes(defaultDetectionWindowMinutes)
                 .autoBlockEnabled(defaultAutoBlockEnabled)
+                .sshBruteforceEnabled(defaultSshBruteforceEnabled)
+                .sshProbeEnabled(defaultSshProbeEnabled)
+                .portScanEnabled(defaultPortScanEnabled)
                 .updatedAt(OffsetDateTime.now())
                 .updatedBy("system")
                 .build();
@@ -93,6 +105,16 @@ public class PolicyService {
         return ensureLoaded().isAutoBlockEnabled();
     }
 
+    public boolean detectorEnabled(String category) {
+        SecurityPolicy policy = ensureLoaded();
+        return switch (category) {
+            case "SSH_BRUTEFORCE" -> policy.isSshBruteforceEnabled();
+            case "SSH_PROBE" -> policy.isSshProbeEnabled();
+            case "PORT_SCAN" -> policy.isPortScanEnabled();
+            default -> true;
+        };
+    }
+
     public PolicyView current() {
         return PolicyView.from(ensureLoaded());
     }
@@ -111,6 +133,9 @@ public class PolicyService {
         policy.setBlockThreshold(request.getBlockThreshold());
         policy.setDetectionWindowMinutes(request.getDetectionWindowMinutes());
         policy.setAutoBlockEnabled(request.getAutoBlockEnabled());
+        policy.setSshBruteforceEnabled(request.getSshBruteforceEnabled());
+        policy.setSshProbeEnabled(request.getSshProbeEnabled());
+        policy.setPortScanEnabled(request.getPortScanEnabled());
         policy.setUpdatedAt(OffsetDateTime.now());
         policy.setUpdatedBy(actor.username());
 
@@ -129,6 +154,9 @@ public class PolicyService {
         appendChange(sb, "blockThreshold", current.getBlockThreshold(), next.getBlockThreshold());
         appendChange(sb, "detectionWindowMinutes", current.getDetectionWindowMinutes(), next.getDetectionWindowMinutes());
         appendChange(sb, "autoBlockEnabled", current.isAutoBlockEnabled(), next.getAutoBlockEnabled());
+        appendChange(sb, "sshBruteforceEnabled", current.isSshBruteforceEnabled(), next.getSshBruteforceEnabled());
+        appendChange(sb, "sshProbeEnabled", current.isSshProbeEnabled(), next.getSshProbeEnabled());
+        appendChange(sb, "portScanEnabled", current.isPortScanEnabled(), next.getPortScanEnabled());
         return sb.toString();
     }
 

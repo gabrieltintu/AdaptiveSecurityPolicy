@@ -55,7 +55,10 @@
               <div class="threat-info">
                 <span class="badge" [class]="statusClass(ip.status)">{{ ip.status }}</span>
                 <span class="threat-ip">{{ ip.ipAddress }}</span>
-                <span class="threat-attempts">{{ ip.failedAttempts }} attempts</span>
+                <span class="threat-attempts">{{ ip.failedAttempts }} signals</span>
+                @for (s of ip.sources; track s) {
+                  <span class="tag">{{ sourceLabel(s) }}</span>
+                }
               </div>
               @if (ip.status === 'BLOCKED' && isAdmin) {
                 <button class="btn btn-sm btn-ghost" (click)="unblockIp(ip.ipAddress)">Unblock</button>

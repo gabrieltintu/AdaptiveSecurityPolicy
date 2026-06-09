@@ -37,6 +37,18 @@ public class SecurityPolicy {
     @Builder.Default
     private boolean autoBlockEnabled = true;
 
+    @Column(name = "ssh_bruteforce_enabled", columnDefinition = "boolean not null default true")
+    @Builder.Default
+    private boolean sshBruteforceEnabled = true;
+
+    @Column(name = "ssh_probe_enabled", columnDefinition = "boolean not null default true")
+    @Builder.Default
+    private boolean sshProbeEnabled = true;
+
+    @Column(name = "port_scan_enabled", columnDefinition = "boolean not null default true")
+    @Builder.Default
+    private boolean portScanEnabled = true;
+
     @Column(name = "updated_at", nullable = false)
     @Builder.Default
     private OffsetDateTime updatedAt = OffsetDateTime.now();

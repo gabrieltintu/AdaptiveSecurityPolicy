@@ -9,6 +9,9 @@ public record PolicyView(
         int blockThreshold,
         int detectionWindowMinutes,
         boolean autoBlockEnabled,
+        boolean sshBruteforceEnabled,
+        boolean sshProbeEnabled,
+        boolean portScanEnabled,
         OffsetDateTime updatedAt,
         String updatedBy
 ) {
@@ -18,6 +21,9 @@ public record PolicyView(
                 policy.getBlockThreshold(),
                 policy.getDetectionWindowMinutes(),
                 policy.isAutoBlockEnabled(),
+                policy.isSshBruteforceEnabled(),
+                policy.isSshProbeEnabled(),
+                policy.isPortScanEnabled(),
                 policy.getUpdatedAt(),
                 policy.getUpdatedBy()
         );

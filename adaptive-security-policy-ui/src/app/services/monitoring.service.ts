@@ -25,6 +25,7 @@ export interface SuspiciousIpInfo {
   ipAddress: string;
   failedAttempts: number;
   status: 'WARNING' | 'BLOCKED';
+  sources?: string[];
   detectedAt: string;
 }
 

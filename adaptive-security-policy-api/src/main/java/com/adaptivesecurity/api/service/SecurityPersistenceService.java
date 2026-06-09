@@ -29,7 +29,7 @@ public class SecurityPersistenceService {
     }
 
     @Transactional
-    public void recordWarning(String ipAddress, int attempts, Actor actor) {
+    public void recordWarning(String ipAddress, int attempts, String sources, Actor actor) {
         TrackedIp trackedIp = upsert(ipAddress);
         trackedIp.setFailedAttempts(attempts);
         trackedIp.setLastSeen(OffsetDateTime.now());
@@ -37,8 +37,9 @@ public class SecurityPersistenceService {
             trackedIp.setCurrentStatus(IpStatus.WARNING);
         }
         trackedIpRepository.save(trackedIp);
-        auditService.log(AuditAction.WARN, actor, trackedIp,
-                "Warning: " + attempts + " failed SSH login attempts");
+        String detail = "Warning: " + attempts + " suspicious signals"
+                + (sources == null || sources.isBlank() ? "" : " (" + sources + ")");
+        auditService.log(AuditAction.WARN, actor, trackedIp, detail);
     }
 
     @Transactional

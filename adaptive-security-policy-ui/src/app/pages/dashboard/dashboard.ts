@@ -7,7 +7,7 @@ import { MonitoringService, SuspiciousIpInfo } from '../../services/monitoring.s
 import { FirewallService } from '../../services/firewall.service';
 import { WebSocketService, AlertEvent } from '../../services/websocket.service';
 import { WS_URL } from '../../utils/constants';
-import { formatDateTime, statusClass } from '../../utils/functions';
+import { formatDateTime, statusClass, sourceLabel } from '../../utils/functions';
 import { MESSAGES } from '../../utils/messages';
 import { IconComponent } from '../../components/icon/icon';
 
@@ -32,6 +32,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   readonly formatDateTime = formatDateTime;
   readonly statusClass    = statusClass;
+  readonly sourceLabel    = sourceLabel;
 
   constructor(
     private monitoringService: MonitoringService,

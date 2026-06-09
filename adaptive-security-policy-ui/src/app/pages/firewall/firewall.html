@@ -5,6 +5,48 @@
     <p class="page-subtitle">Block and manage IP addresses manually</p>
   </div>
 
+  <div class="card ai-card">
+    <div class="card-header">
+      <h2 class="card-title">AI Firewall</h2>
+      <span class="badge badge-purple">Gemini</span>
+    </div>
+    <p class="wl-intro">Describe what you want in plain language. The AI proposes firewall actions — nothing is applied until you confirm.</p>
+    <div class="ai-form">
+      <input class="input" type="text"
+        placeholder='e.g. "block 203.0.113.0/24 on all chains and whitelist 192.168.1.0/24"'
+        [(ngModel)]="aiText" (keyup.enter)="interpret()" />
+      <button class="btn btn-primary" (click)="interpret()" [disabled]="aiLoading || !aiText.trim()">
+        <app-icon name="shield" [size]="16" /> {{ aiLoading ? 'Thinking…' : 'Interpret' }}
+      </button>
+    </div>
+
+    @if (aiMsg) {
+      <p class="action-msg" [class.success]="aiSuccess">{{ aiMsg }}</p>
+    }
+
+    @if (aiActions.length > 0) {
+      <div class="ai-actions">
+        @for (a of aiActions; track $index) {
+          <div class="ai-action" [class.invalid]="!a.valid">
+            <span class="badge"
+              [class.badge-red]="a.action === 'BLOCK'"
+              [class.badge-green]="a.action === 'WHITELIST'">{{ a.action }}</span>
+            <span class="ip-addr">{{ a.ipAddress || '—' }}</span>
+            @if (a.chain) { <span class="tag">{{ a.chain }}</span> }
+            @if (a.note) { <span class="ip-meta">{{ a.note }}</span> }
+            @if (!a.valid) { <span class="ai-error">{{ a.error }}</span> }
+          </div>
+        }
+      </div>
+      <div class="fw-actions">
+        <button class="btn btn-primary btn-block" (click)="applyAll()" [disabled]="validCount === 0">
+          Apply {{ validCount }} action{{ validCount === 1 ? '' : 's' }}
+        </button>
+        <button class="btn btn-ghost btn-block" (click)="clearAi()">Cancel</button>
+      </div>
+    }
+  </div>
+
   <div class="fw-grid">
 
     <!-- Block IP Form -->
@@ -55,7 +97,10 @@
               <div class="ip-row">
                 <div class="ip-info">
                   <span class="ip-addr">{{ ip.ipAddress }}</span>
-                  <span class="ip-meta">{{ ip.failedAttempts }} attempts</span>
+                  <span class="ip-meta">{{ ip.failedAttempts }} signals</span>
+                  @for (s of ip.sources; track s) {
+                    <span class="tag">{{ sourceLabel(s) }}</span>
+                  }
                 </div>
                 <button class="btn btn-sm btn-danger" (click)="blockFromList(ip.ipAddress)">Block</button>
               </div>
@@ -78,7 +123,10 @@
               <div class="ip-row">
                 <div class="ip-info">
                   <span class="ip-addr">{{ ip.ipAddress }}</span>
-                  <span class="ip-meta">{{ ip.failedAttempts }} attempts</span>
+                  <span class="ip-meta">{{ ip.failedAttempts }} signals</span>
+                  @for (s of ip.sources; track s) {
+                    <span class="tag">{{ sourceLabel(s) }}</span>
+                  }
                 </div>
                 <button class="btn btn-sm btn-ghost" (click)="unblock(ip.ipAddress)">Unblock</button>
               </div>

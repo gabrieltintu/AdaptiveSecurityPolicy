@@ -8,6 +8,9 @@ export interface SecurityPolicy {
   blockThreshold: number;
   detectionWindowMinutes: number;
   autoBlockEnabled: boolean;
+  sshBruteforceEnabled: boolean;
+  sshProbeEnabled: boolean;
+  portScanEnabled: boolean;
   updatedAt: string;
   updatedBy: string | null;
 }
@@ -17,6 +20,9 @@ export interface PolicyUpdateRequest {
   blockThreshold: number;
   detectionWindowMinutes: number;
   autoBlockEnabled: boolean;
+  sshBruteforceEnabled: boolean;
+  sshProbeEnabled: boolean;
+  portScanEnabled: boolean;
 }
 
 @Injectable({ providedIn: 'root' })

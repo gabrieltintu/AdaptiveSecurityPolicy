@@ -24,6 +24,11 @@ public final class AppConstants {
     public static final String AUTH_LOG_CMD              = "journalctl -u ssh -u sshd --since \"%d minutes ago\" --no-pager 2>/dev/null | grep \"Failed password\"";
     public static final String FAILED_PASSWORD_IP_REGEX  = "from (\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}) port";
 
+    // Multi-service detection — base journald commands (%d = detection window in minutes)
+    public static final String SSH_JOURNAL_CMD       = "journalctl -u ssh -u sshd --since \"%d minutes ago\" --no-pager 2>/dev/null";
+    public static final String KERNEL_LOG_CMD        = "journalctl -k --since \"%d minutes ago\" --no-pager 2>/dev/null";
+    public static final String PORT_SCAN_LINE_REGEX  = "SRC=(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}).*DPT=(\\d{1,5})";
+
     // Email subject templates (%s = ip address)
     public static final String WARNING_EMAIL_SUBJECT = "[Security Alert] Suspicious IP Detected: %s";
     public static final String BLOCK_EMAIL_SUBJECT   = "[Security Action] IP Automatically Blocked: %s";

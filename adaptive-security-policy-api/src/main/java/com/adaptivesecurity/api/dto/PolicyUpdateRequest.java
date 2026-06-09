@@ -23,4 +23,13 @@ public class PolicyUpdateRequest {
 
     @NotNull(message = "Auto-block flag is required")
     private Boolean autoBlockEnabled;
+
+    @NotNull(message = "SSH brute-force detector flag is required")
+    private Boolean sshBruteforceEnabled;
+
+    @NotNull(message = "SSH probe detector flag is required")
+    private Boolean sshProbeEnabled;
+
+    @NotNull(message = "Port scan detector flag is required")
+    private Boolean portScanEnabled;
 }
