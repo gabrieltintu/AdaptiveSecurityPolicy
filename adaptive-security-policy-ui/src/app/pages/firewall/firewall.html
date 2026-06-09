@@ -27,14 +27,24 @@
     @if (aiActions.length > 0) {
       <div class="ai-actions">
         @for (a of aiActions; track $index) {
-          <div class="ai-action" [class.invalid]="!a.valid">
-            <span class="badge"
-              [class.badge-red]="a.action === 'BLOCK'"
-              [class.badge-green]="a.action === 'WHITELIST'">{{ a.action }}</span>
-            <span class="ip-addr">{{ a.ipAddress || '—' }}</span>
-            @if (a.chain) { <span class="tag">{{ a.chain }}</span> }
-            @if (a.note) { <span class="ip-meta">{{ a.note }}</span> }
-            @if (!a.valid) { <span class="ai-error">{{ a.error }}</span> }
+          <div class="ai-action-wrap">
+            <div class="ai-action" [class.invalid]="!a.valid">
+              <span class="badge"
+                [class.badge-red]="a.action === 'BLOCK'"
+                [class.badge-green]="a.action === 'WHITELIST'">{{ a.action }}</span>
+              <span class="ip-addr">{{ a.ipAddress || '—' }}</span>
+              @if (a.chain) { <span class="tag">{{ a.chain }}</span> }
+              @if (a.note) { <span class="ip-meta">{{ a.note }}</span> }
+              @if (!a.valid) { <span class="ai-error">{{ a.error }}</span> }
+              @if (a.valid) {
+                <button class="btn-ghost ai-view-btn" (click)="toggleAction($index)">
+                  {{ aiExpanded.has($index) ? 'Hide action' : 'View action' }}
+                </button>
+              }
+            </div>
+            @if (a.valid && aiExpanded.has($index)) {
+              <pre class="ai-cmd">{{ effectiveCommand(a) }}</pre>
+            }
           </div>
         }
       </div>
@@ -71,8 +81,8 @@
       </div>
 
       <div class="fw-actions">
-        <button class="btn btn-primary btn-block" (click)="block()"><app-icon name="ban" [size]="16" /> Block IP</button>
-        <button class="btn btn-ghost btn-block" (click)="unblockManual()"><app-icon name="shield" [size]="16" /> Unblock IP</button>
+        <button class="btn btn-primary btn-block" (click)="block()" [disabled]="!ipInput.trim()"><app-icon name="ban" [size]="16" /> Block IP</button>
+        <button class="btn btn-ghost btn-block" (click)="unblockManual()" [disabled]="!ipInput.trim()"><app-icon name="shield" [size]="16" /> Unblock IP</button>
       </div>
 
       @if (message) {

@@ -29,10 +29,12 @@ export class FirewallComponent implements OnInit {
   aiLoading = false;
   aiMsg = '';
   aiSuccess = false;
+  aiExpanded = new Set<number>();
 
   readonly statusClass = statusClass;
   readonly sourceLabel = sourceLabel;
   readonly chains = ['ALL', 'INPUT', 'OUTPUT', 'FORWARD'];
+  private readonly ipv4OrCidr = /^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)(\/([0-9]|[1-2][0-9]|3[0-2]))?$/;
 
   constructor(
     private monitoringService: MonitoringService,
@@ -54,34 +56,46 @@ export class FirewallComponent implements OnInit {
   get blockedIps(): SuspiciousIpInfo[] { return this.suspiciousIps.filter(i => i.status === 'BLOCKED'); }
   get warningIps(): SuspiciousIpInfo[] { return this.suspiciousIps.filter(i => i.status === 'WARNING'); }
 
+  private validIp(ip: string): boolean {
+    if (!ip) return false;
+    if (!this.ipv4OrCidr.test(ip)) {
+      this.success = false;
+      this.message = `"${ip}" is not a valid IPv4 address or CIDR.`;
+      this.cdr.detectChanges();
+      return false;
+    }
+    return true;
+  }
+
   block(): void {
-    if (!this.ipInput.trim()) return;
-    this.firewallService.blockIp({ ipAddress: this.ipInput.trim(), chain: this.chain }).subscribe({
+    const ip = this.ipInput.trim();
+    if (!this.validIp(ip)) return;
+    this.firewallService.blockIp({ ipAddress: ip, chain: this.chain }).subscribe({
       next: res => { this.success = res.success; this.message = res.message; this.ipInput = ''; this.load(); },
-      error: ()  => { this.success = false; this.message = MESSAGES.firewall.blockError(this.ipInput); }
+      error: err => { this.success = false; this.message = err?.error?.message || MESSAGES.firewall.blockError(ip); this.cdr.detectChanges(); }
     });
   }
 
   unblock(ip: string): void {
     this.firewallService.unblockIp({ ipAddress: ip, chain: 'ALL' }).subscribe({
       next: res => { this.success = res.success; this.message = res.message; this.load(); },
-      error: ()  => { this.success = false; this.message = MESSAGES.firewall.unblockError(ip); }
+      error: err => { this.success = false; this.message = err?.error?.message || MESSAGES.firewall.unblockError(ip); this.cdr.detectChanges(); }
     });
   }
 
   unblockManual(): void {
     const ip = this.ipInput.trim();
-    if (!ip) return;
+    if (!this.validIp(ip)) return;
     this.firewallService.unblockIp({ ipAddress: ip, chain: this.chain }).subscribe({
       next: res => { this.success = res.success; this.message = res.message; this.ipInput = ''; this.load(); },
-      error: ()  => { this.success = false; this.message = MESSAGES.firewall.unblockError(ip); }
+      error: err => { this.success = false; this.message = err?.error?.message || MESSAGES.firewall.unblockError(ip); this.cdr.detectChanges(); }
     });
   }
 
   blockFromList(ip: string): void {
     this.firewallService.blockIp({ ipAddress: ip, chain: 'ALL' }).subscribe({
       next: res => { this.success = res.success; this.message = res.message; this.load(); },
-      error: ()  => { this.success = false; this.message = MESSAGES.firewall.blockError(ip); }
+      error: err => { this.success = false; this.message = err?.error?.message || MESSAGES.firewall.blockError(ip); this.cdr.detectChanges(); }
     });
   }
 
@@ -93,6 +107,7 @@ export class FirewallComponent implements OnInit {
     this.aiLoading = true;
     this.aiMsg = '';
     this.aiActions = [];
+    this.aiExpanded.clear();
     this.aiService.interpret(text).subscribe({
       next: actions => {
         this.aiActions = actions;
@@ -135,5 +150,26 @@ export class FirewallComponent implements OnInit {
     }
   }
 
-  clearAi(): void { this.aiActions = []; this.aiMsg = ''; this.aiText = ''; }
+  clearAi(): void { this.aiActions = []; this.aiMsg = ''; this.aiText = ''; this.aiExpanded.clear(); }
+
+  toggleAction(i: number): void {
+    if (this.aiExpanded.has(i)) { this.aiExpanded.delete(i); } else { this.aiExpanded.add(i); }
+  }
+
+  effectiveCommand(a: ProposedAction): string {
+    if (a.action === 'WHITELIST') {
+      return `# application whitelist (no iptables rule)\n# ${a.ipAddress} will be skipped by the auto-blocker`;
+    }
+    const flag = a.action === 'BLOCK' ? '-A' : '-D';
+    const ip = a.ipAddress;
+    const chain = a.chain || 'ALL';
+    const cmds: string[] = [];
+    if (chain === 'ALL' || chain === 'INPUT')  { cmds.push(`sudo iptables ${flag} INPUT -s ${ip} -j DROP`); }
+    if (chain === 'ALL' || chain === 'OUTPUT') { cmds.push(`sudo iptables ${flag} OUTPUT -d ${ip} -j DROP`); }
+    if (chain === 'ALL' || chain === 'FORWARD') {
+      cmds.push(`sudo iptables ${flag} FORWARD -s ${ip} -j DROP`);
+      cmds.push(`sudo iptables ${flag} FORWARD -d ${ip} -j DROP`);
+    }
+    return cmds.join('\n');
+  }
 }
