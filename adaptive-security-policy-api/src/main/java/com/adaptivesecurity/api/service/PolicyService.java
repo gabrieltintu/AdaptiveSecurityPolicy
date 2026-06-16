@@ -48,6 +48,9 @@ public class PolicyService {
     @Value("${security.detectors.port-scan.enabled:true}")
     private boolean defaultPortScanEnabled;
 
+    @Value("${security.detectors.conn-flood.enabled:false}")
+    private boolean defaultConnFloodEnabled;
+
     private volatile SecurityPolicy cache;
 
     @EventListener(ApplicationReadyEvent.class)
@@ -79,6 +82,7 @@ public class PolicyService {
                 .sshBruteforceEnabled(defaultSshBruteforceEnabled)
                 .sshProbeEnabled(defaultSshProbeEnabled)
                 .portScanEnabled(defaultPortScanEnabled)
+                .connFloodEnabled(defaultConnFloodEnabled)
                 .updatedAt(OffsetDateTime.now())
                 .updatedBy("system")
                 .build();
@@ -111,6 +115,7 @@ public class PolicyService {
             case "SSH_BRUTEFORCE" -> policy.isSshBruteforceEnabled();
             case "SSH_PROBE" -> policy.isSshProbeEnabled();
             case "PORT_SCAN" -> policy.isPortScanEnabled();
+            case "CONN_FLOOD" -> policy.isConnFloodEnabled();
             default -> true;
         };
     }
@@ -136,6 +141,7 @@ public class PolicyService {
         policy.setSshBruteforceEnabled(request.getSshBruteforceEnabled());
         policy.setSshProbeEnabled(request.getSshProbeEnabled());
         policy.setPortScanEnabled(request.getPortScanEnabled());
+        policy.setConnFloodEnabled(request.getConnFloodEnabled());
         policy.setUpdatedAt(OffsetDateTime.now());
         policy.setUpdatedBy(actor.username());
 
@@ -157,6 +163,7 @@ public class PolicyService {
         appendChange(sb, "sshBruteforceEnabled", current.isSshBruteforceEnabled(), next.getSshBruteforceEnabled());
         appendChange(sb, "sshProbeEnabled", current.isSshProbeEnabled(), next.getSshProbeEnabled());
         appendChange(sb, "portScanEnabled", current.isPortScanEnabled(), next.getPortScanEnabled());
+        appendChange(sb, "connFloodEnabled", current.isConnFloodEnabled(), next.getConnFloodEnabled());
         return sb.toString();
     }
 

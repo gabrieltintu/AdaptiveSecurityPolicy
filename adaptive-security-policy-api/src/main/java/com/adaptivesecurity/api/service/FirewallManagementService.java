@@ -17,7 +17,20 @@ public class FirewallManagementService {
 
     public FirewallActionResponse blockIp(String ipAddress, String chain) {
         List<String> commands = buildCommands("-A", ipAddress, chain);
-        return executeAll(commands, "blocked", ipAddress);
+        FirewallActionResponse response = executeAll(commands, "blocked", ipAddress);
+        if (response.isSuccess()) {
+            dropActiveConnections(ipAddress);
+        }
+        return response;
+    }
+
+    /**
+     * Forcibly closes any active sockets to/from the blocked IP. The iptables DROP rule only
+     * stops new packets; existing sessions would otherwise linger until they time out.
+     * Best effort — if the kernel lacks INET_DIAG_DESTROY, the block itself is still in place.
+     */
+    private void dropActiveConnections(String ipAddress) {
+        commandExecutor.execute(StringUtils.formatString(AppConstants.SS_KILL_CMD, ipAddress));
     }
 
     public FirewallActionResponse unblockIp(String ipAddress, String chain) {

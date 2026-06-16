@@ -32,4 +32,7 @@ public class PolicyUpdateRequest {
 
     @NotNull(message = "Port scan detector flag is required")
     private Boolean portScanEnabled;
+
+    @NotNull(message = "Connection flood detector flag is required")
+    private Boolean connFloodEnabled;
 }

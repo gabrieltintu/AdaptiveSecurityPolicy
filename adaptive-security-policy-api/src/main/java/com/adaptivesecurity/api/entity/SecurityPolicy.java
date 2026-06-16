@@ -49,6 +49,10 @@ public class SecurityPolicy {
     @Builder.Default
     private boolean portScanEnabled = true;
 
+    @Column(name = "conn_flood_enabled", columnDefinition = "boolean not null default false")
+    @Builder.Default
+    private boolean connFloodEnabled = false;
+
     @Column(name = "updated_at", nullable = false)
     @Builder.Default
     private OffsetDateTime updatedAt = OffsetDateTime.now();

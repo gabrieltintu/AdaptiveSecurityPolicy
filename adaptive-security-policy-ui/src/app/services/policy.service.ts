@@ -11,6 +11,7 @@ export interface SecurityPolicy {
   sshBruteforceEnabled: boolean;
   sshProbeEnabled: boolean;
   portScanEnabled: boolean;
+  connFloodEnabled: boolean;
   updatedAt: string;
   updatedBy: string | null;
 }
@@ -23,6 +24,7 @@ export interface PolicyUpdateRequest {
   sshBruteforceEnabled: boolean;
   sshProbeEnabled: boolean;
   portScanEnabled: boolean;
+  connFloodEnabled: boolean;
 }
 
 @Injectable({ providedIn: 'root' })

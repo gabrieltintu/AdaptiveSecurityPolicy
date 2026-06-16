@@ -29,6 +29,13 @@ public final class AppConstants {
     public static final String KERNEL_LOG_CMD        = "journalctl -k --since \"%d minutes ago\" --no-pager 2>/dev/null";
     public static final String PORT_SCAN_LINE_REGEX  = "SRC=(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}).*DPT=(\\d{1,5})";
 
+    // Connection flood detection — count established TCP connections per peer IP
+    public static final String SS_ESTABLISHED_CMD    = "ss -tn state established 2>/dev/null";
+    public static final String SS_PEER_IP_REGEX      = "(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})";
+
+    // Kill active connections of a blocked IP so blocking is immediate (%s = ip)
+    public static final String SS_KILL_CMD           = "sudo ss -K dst %s";
+
     // Email subject templates (%s = ip address)
     public static final String WARNING_EMAIL_SUBJECT = "[Security Alert] Suspicious IP Detected: %s";
     public static final String BLOCK_EMAIL_SUBJECT   = "[Security Action] IP Automatically Blocked: %s";

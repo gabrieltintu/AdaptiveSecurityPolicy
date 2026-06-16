@@ -22,6 +22,7 @@ export class PolicyComponent implements OnInit {
   sshBruteforceEnabled = true;
   sshProbeEnabled = true;
   portScanEnabled = true;
+  connFloodEnabled = false;
   updatedAt = '';
   updatedBy: string | null = null;
 
@@ -29,7 +30,7 @@ export class PolicyComponent implements OnInit {
   policySuccess = false;
   saving = false;
 
-  private original = { warningThreshold: 0, blockThreshold: 0, detectionWindowMinutes: 0, autoBlockEnabled: true, sshBruteforceEnabled: true, sshProbeEnabled: true, portScanEnabled: true };
+  private original = { warningThreshold: 0, blockThreshold: 0, detectionWindowMinutes: 0, autoBlockEnabled: true, sshBruteforceEnabled: true, sshProbeEnabled: true, portScanEnabled: true, connFloodEnabled: false };
 
   whitelist: WhitelistEntry[] = [];
   wlIp = '';
@@ -66,6 +67,7 @@ export class PolicyComponent implements OnInit {
     this.sshBruteforceEnabled = p.sshBruteforceEnabled;
     this.sshProbeEnabled = p.sshProbeEnabled;
     this.portScanEnabled = p.portScanEnabled;
+    this.connFloodEnabled = p.connFloodEnabled;
     this.updatedAt = p.updatedAt;
     this.updatedBy = p.updatedBy;
     this.original = {
@@ -75,7 +77,8 @@ export class PolicyComponent implements OnInit {
       autoBlockEnabled: p.autoBlockEnabled,
       sshBruteforceEnabled: p.sshBruteforceEnabled,
       sshProbeEnabled: p.sshProbeEnabled,
-      portScanEnabled: p.portScanEnabled
+      portScanEnabled: p.portScanEnabled,
+      connFloodEnabled: p.connFloodEnabled
     };
   }
 
@@ -90,7 +93,8 @@ export class PolicyComponent implements OnInit {
       || this.autoBlockEnabled !== this.original.autoBlockEnabled
       || this.sshBruteforceEnabled !== this.original.sshBruteforceEnabled
       || this.sshProbeEnabled !== this.original.sshProbeEnabled
-      || this.portScanEnabled !== this.original.portScanEnabled;
+      || this.portScanEnabled !== this.original.portScanEnabled
+      || this.connFloodEnabled !== this.original.connFloodEnabled;
   }
 
   savePolicy(): void {
@@ -113,7 +117,8 @@ export class PolicyComponent implements OnInit {
       autoBlockEnabled: this.autoBlockEnabled,
       sshBruteforceEnabled: this.sshBruteforceEnabled,
       sshProbeEnabled: this.sshProbeEnabled,
-      portScanEnabled: this.portScanEnabled
+      portScanEnabled: this.portScanEnabled,
+      connFloodEnabled: this.connFloodEnabled
     }).subscribe({
       next: p => {
         this.applyPolicy(p);

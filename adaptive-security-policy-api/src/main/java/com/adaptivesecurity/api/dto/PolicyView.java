@@ -12,6 +12,7 @@ public record PolicyView(
         boolean sshBruteforceEnabled,
         boolean sshProbeEnabled,
         boolean portScanEnabled,
+        boolean connFloodEnabled,
         OffsetDateTime updatedAt,
         String updatedBy
 ) {
@@ -24,6 +25,7 @@ public record PolicyView(
                 policy.isSshBruteforceEnabled(),
                 policy.isSshProbeEnabled(),
                 policy.isPortScanEnabled(),
+                policy.isConnFloodEnabled(),
                 policy.getUpdatedAt(),
                 policy.getUpdatedBy()
         );

@@ -8,7 +8,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public abstract class LogPatternDetector implements ThreatDetector {
-
     private final CommandExecutorService commandExecutor;
     private final Pattern ipPattern;
 
@@ -23,10 +22,12 @@ public abstract class LogPatternDetector implements ThreatDetector {
     public Map<String, Integer> detect(int windowMinutes) {
         Map<String, Integer> attempts = new HashMap<>();
         String output = commandExecutor.execute(buildCommand(windowMinutes));
+
         if (output == null || output.isBlank()
                 || output.startsWith("Warning") || output.startsWith("Internal error")) {
             return attempts;
         }
+
         for (String line : output.split("\n")) {
             Matcher matcher = ipPattern.matcher(line);
             if (matcher.find()) {

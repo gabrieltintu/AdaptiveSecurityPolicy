@@ -79,6 +79,17 @@
         </label>
       </div>
 
+      <div class="toggle-row">
+        <div class="toggle-text">
+          <span class="toggle-title">Connection flood</span>
+          <span class="field-hint">IPs holding an unusually high number of open connections.</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" [(ngModel)]="connFloodEnabled" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
       @if (thresholdInvalid) {
         <p class="action-msg">Warning threshold must be lower than block threshold.</p>
       }

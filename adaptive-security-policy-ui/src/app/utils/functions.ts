@@ -40,6 +40,7 @@ export function sourceLabel(source: string): string {
     case 'SSH_BRUTEFORCE': return 'SSH brute';
     case 'SSH_PROBE':      return 'SSH probe';
     case 'PORT_SCAN':      return 'Port scan';
+    case 'CONN_FLOOD':     return 'Conn flood';
     default:               return source;
   }
 }
