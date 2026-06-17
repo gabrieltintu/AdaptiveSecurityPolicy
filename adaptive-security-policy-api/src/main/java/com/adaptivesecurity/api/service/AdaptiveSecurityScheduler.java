@@ -1,5 +1,6 @@
 package com.adaptivesecurity.api.service;
 
+import com.adaptivesecurity.api.dto.FirewallActionResponse;
 import com.adaptivesecurity.api.dto.SuspiciousIpInfo;
 import com.adaptivesecurity.api.service.detection.IpThreat;
 import com.adaptivesecurity.api.entity.TrackedIp;
@@ -89,7 +90,11 @@ public class AdaptiveSecurityScheduler {
                     .build();
 
             if (autoBlock && count >= blockThreshold && !blockedIps.contains(ip)) {
-                firewallManagementService.blockIp(ip, "ALL");
+                FirewallActionResponse blockResult = firewallManagementService.blockIp(ip, "ALL");
+                if (!blockResult.isSuccess()) {
+                    log.warn("Auto-block command failed for IP {} — {}", ip, blockResult.getMessage());
+                    continue;
+                }
                 webSocketAlertService.sendBlockAlert(info);
                 blockedIps.add(ip);
                 warnedIps.add(ip);

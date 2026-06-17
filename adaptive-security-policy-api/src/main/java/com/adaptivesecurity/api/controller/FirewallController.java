@@ -28,6 +28,10 @@ public class FirewallController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<FirewallActionResponse> blockIp(@Valid @RequestBody FirewallActionRequest request,
                                                           @AuthenticationPrincipal Jwt jwt) {
+        if (adaptiveSecurityScheduler.getBlockedIps().contains(request.getIpAddress())) {
+            return ResponseEntity.ok(FirewallActionResponse.builder()
+                    .success(true).message("IP is already blocked").build());
+        }
         FirewallActionResponse response = firewallManagementService.blockIp(request.getIpAddress(), request.getChain());
         if (response.isSuccess()) {
             // Sync in-memory state so the IP shows as BLOCKED in the frontend
