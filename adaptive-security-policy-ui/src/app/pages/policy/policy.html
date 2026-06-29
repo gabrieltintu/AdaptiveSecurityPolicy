@@ -2,7 +2,6 @@
 
   <div class="page-header">
     <h1 class="page-title">Policy</h1>
-    <p class="page-subtitle">Tune the adaptive thresholds and manage trusted IPs</p>
   </div>
 
   <div class="policy-grid">
@@ -79,6 +78,14 @@
         </label>
       </div>
 
+      @if (portScanEnabled) {
+        <div class="form-group sensitivity-field">
+          <label class="form-label">Port scan sensitivity (min. distinct ports)</label>
+          <input class="input" type="number" min="1" [(ngModel)]="portScanMinPorts" />
+          <span class="field-hint">An IP hitting at least this many distinct ports within the window is flagged.</span>
+        </div>
+      }
+
       <div class="toggle-row">
         <div class="toggle-text">
           <span class="toggle-title">Connection flood</span>
@@ -89,6 +96,14 @@
           <span class="slider"></span>
         </label>
       </div>
+
+      @if (connFloodEnabled) {
+        <div class="form-group sensitivity-field">
+          <label class="form-label">Connection flood sensitivity (min. connections)</label>
+          <input class="input" type="number" min="1" [(ngModel)]="connFloodMinConnections" />
+          <span class="field-hint">An IP holding at least this many simultaneous connections is flagged.</span>
+        </div>
+      }
 
       @if (thresholdInvalid) {
         <p class="action-msg">Warning threshold must be lower than block threshold.</p>

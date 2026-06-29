@@ -12,6 +12,8 @@ export interface SecurityPolicy {
   sshProbeEnabled: boolean;
   portScanEnabled: boolean;
   connFloodEnabled: boolean;
+  portScanMinPorts: number;
+  connFloodMinConnections: number;
   updatedAt: string;
   updatedBy: string | null;
 }
@@ -25,6 +27,8 @@ export interface PolicyUpdateRequest {
   sshProbeEnabled: boolean;
   portScanEnabled: boolean;
   connFloodEnabled: boolean;
+  portScanMinPorts: number;
+  connFloodMinConnections: number;
 }
 
 @Injectable({ providedIn: 'root' })

@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.OffsetDateTime;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -51,6 +52,12 @@ public class PolicyService {
     @Value("${security.detectors.conn-flood.enabled:false}")
     private boolean defaultConnFloodEnabled;
 
+    @Value("${security.detectors.port-scan.min-ports:5}")
+    private int defaultPortScanMinPorts;
+
+    @Value("${security.detectors.conn-flood.min-connections:50}")
+    private int defaultConnFloodMinConnections;
+
     private volatile SecurityPolicy cache;
 
     @EventListener(ApplicationReadyEvent.class)
@@ -83,6 +90,8 @@ public class PolicyService {
                 .sshProbeEnabled(defaultSshProbeEnabled)
                 .portScanEnabled(defaultPortScanEnabled)
                 .connFloodEnabled(defaultConnFloodEnabled)
+                .portScanMinPorts(defaultPortScanMinPorts)
+                .connFloodMinConnections(defaultConnFloodMinConnections)
                 .updatedAt(OffsetDateTime.now())
                 .updatedBy("system")
                 .build();
@@ -107,6 +116,14 @@ public class PolicyService {
 
     public boolean autoBlockEnabled() {
         return ensureLoaded().isAutoBlockEnabled();
+    }
+
+    public int portScanMinPorts() {
+        return ensureLoaded().getPortScanMinPorts();
+    }
+
+    public int connFloodMinConnections() {
+        return ensureLoaded().getConnFloodMinConnections();
     }
 
     public boolean detectorEnabled(String category) {
@@ -142,6 +159,8 @@ public class PolicyService {
         policy.setSshProbeEnabled(request.getSshProbeEnabled());
         policy.setPortScanEnabled(request.getPortScanEnabled());
         policy.setConnFloodEnabled(request.getConnFloodEnabled());
+        policy.setPortScanMinPorts(request.getPortScanMinPorts());
+        policy.setConnFloodMinConnections(request.getConnFloodMinConnections());
         policy.setUpdatedAt(OffsetDateTime.now());
         policy.setUpdatedBy(actor.username());
 
@@ -164,12 +183,14 @@ public class PolicyService {
         appendChange(sb, "sshProbeEnabled", current.isSshProbeEnabled(), next.getSshProbeEnabled());
         appendChange(sb, "portScanEnabled", current.isPortScanEnabled(), next.getPortScanEnabled());
         appendChange(sb, "connFloodEnabled", current.isConnFloodEnabled(), next.getConnFloodEnabled());
+        appendChange(sb, "portScanMinPorts", current.getPortScanMinPorts(), next.getPortScanMinPorts());
+        appendChange(sb, "connFloodMinConnections", current.getConnFloodMinConnections(), next.getConnFloodMinConnections());
         return sb.toString();
     }
 
     private void appendChange(StringBuilder sb, String field, Object oldValue, Object newValue) {
-        if (oldValue == null ? newValue != null : !oldValue.equals(newValue)) {
-            if (sb.length() > 0) {
+        if (!Objects.equals(oldValue, newValue)) {
+            if (!sb.isEmpty()) {
                 sb.append("; ");
             }
             sb.append(field).append(": ").append(oldValue).append(" -> ").append(newValue);

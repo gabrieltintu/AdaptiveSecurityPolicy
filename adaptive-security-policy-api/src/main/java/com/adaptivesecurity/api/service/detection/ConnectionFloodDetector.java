@@ -1,8 +1,8 @@
 package com.adaptivesecurity.api.service.detection;
 
 import com.adaptivesecurity.api.service.CommandExecutorService;
+import com.adaptivesecurity.api.service.PolicyService;
 import com.adaptivesecurity.api.utils.AppConstants;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -16,12 +16,11 @@ public class ConnectionFloodDetector implements ThreatDetector {
     private static final Pattern PEER_PATTERN = Pattern.compile(AppConstants.SS_PEER_IP_REGEX);
 
     private final CommandExecutorService commandExecutor;
+    private final PolicyService policyService;
 
-    @Value("${security.detectors.conn-flood.min-connections:50}")
-    private int minConnections;
-
-    public ConnectionFloodDetector(CommandExecutorService commandExecutor) {
+    public ConnectionFloodDetector(CommandExecutorService commandExecutor, PolicyService policyService) {
         this.commandExecutor = commandExecutor;
+        this.policyService = policyService;
     }
 
     @Override
@@ -50,6 +49,7 @@ public class ConnectionFloodDetector implements ThreatDetector {
             }
         }
 
+        int minConnections = policyService.connFloodMinConnections();
         for (Map.Entry<String, Integer> entry : perIp.entrySet()) {
             if (entry.getValue() >= minConnections) {
                 result.put(entry.getKey(), entry.getValue());

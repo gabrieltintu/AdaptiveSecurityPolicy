@@ -81,7 +81,7 @@ public class KnockListenerService {
             try {
                 ss.close();
             } catch (IOException ignored) {
-                // closing on shutdown — nothing to recover
+                // closing on shutdown
             }
         }
         if (listenerPool != null) {

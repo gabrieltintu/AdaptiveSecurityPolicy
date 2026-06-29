@@ -14,7 +14,6 @@ public class NetworkMonitoringService {
 
     private final CommandExecutorService commandExecutor;
 
-    // Metoda veche pentru conexiuni (ramane neschimbata)
     public List<NetworkConnection> getActiveConnections() {
         String rawOutput = commandExecutor.execute("ss -tun");
         List<NetworkConnection> connections = new ArrayList<>();
@@ -32,9 +31,8 @@ public class NetworkMonitoringService {
         return connections;
     }
 
-    // NOU: Metoda pentru citirea si parsarea regulilor de Firewall
+    // read and parse firewall rules from iptables
     public List<FirewallRule> getFirewallRules() {
-        // Folosim sudo pentru ca iptables cere drepturi de root
         String rawOutput = commandExecutor.execute("sudo iptables -L -n -v");
         List<FirewallRule> rules = new ArrayList<>();
 
@@ -47,19 +45,15 @@ public class NetworkMonitoringService {
             line = line.trim();
             if (line.isEmpty()) continue;
 
-            // Detectam in ce "Chain" suntem (INPUT, FORWARD, OUTPUT)
             if (line.startsWith("Chain")) {
                 currentChain = line.split(" ")[1];
                 continue;
             }
 
-            // Sarim peste liniile de header ale tabelului
             if (line.startsWith("pkts") || line.startsWith("num")) continue;
 
-            // Parsam liniile de date
             String[] parts = line.split("\\s+");
             if (parts.length >= 9) {
-                // Structura iptables -v: [0]pkts, [1]bytes, [2]target, [3]prot, [4]opt, [5]in, [6]out, [7]source, [8]destination
                 StringBuilder extraOptions = new StringBuilder();
                 if (parts.length > 9) {
                     for (int j = 9; j < parts.length; j++) {

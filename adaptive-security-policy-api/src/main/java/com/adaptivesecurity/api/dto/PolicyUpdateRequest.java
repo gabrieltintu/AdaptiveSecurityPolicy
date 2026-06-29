@@ -35,4 +35,12 @@ public class PolicyUpdateRequest {
 
     @NotNull(message = "Connection flood detector flag is required")
     private Boolean connFloodEnabled;
+
+    @NotNull(message = "Port scan sensitivity is required")
+    @Min(value = 1, message = "Port scan sensitivity must be at least 1")
+    private Integer portScanMinPorts;
+
+    @NotNull(message = "Connection flood sensitivity is required")
+    @Min(value = 1, message = "Connection flood sensitivity must be at least 1")
+    private Integer connFloodMinConnections;
 }

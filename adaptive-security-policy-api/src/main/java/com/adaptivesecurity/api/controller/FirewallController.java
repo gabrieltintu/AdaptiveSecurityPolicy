@@ -34,7 +34,6 @@ public class FirewallController {
         }
         FirewallActionResponse response = firewallManagementService.blockIp(request.getIpAddress(), request.getChain());
         if (response.isSuccess()) {
-            // Sync in-memory state so the IP shows as BLOCKED in the frontend
             adaptiveSecurityScheduler.addBlockedIp(request.getIpAddress());
             persistence.recordBlock(request.getIpAddress(), request.getChain(), BlockSource.MANUAL,
                     "Manual block via API", 0, actorOf(jwt));
@@ -50,8 +49,6 @@ public class FirewallController {
                                                             @AuthenticationPrincipal Jwt jwt) {
         FirewallActionResponse response = firewallManagementService.unblockIp(request.getIpAddress(), request.getChain());
         if (response.isSuccess()) {
-            // Sync in-memory state so the frontend immediately reflects the unblock
-            // and the scheduler can re-detect this IP if it attacks again
             adaptiveSecurityScheduler.removeIp(request.getIpAddress());
             persistence.recordUnblock(request.getIpAddress(),
                     adaptiveSecurityScheduler.baselineFor(request.getIpAddress()), actorOf(jwt));

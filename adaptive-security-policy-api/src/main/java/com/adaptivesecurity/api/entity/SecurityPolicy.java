@@ -53,6 +53,14 @@ public class SecurityPolicy {
     @Builder.Default
     private boolean connFloodEnabled = false;
 
+    @Column(name = "port_scan_min_ports", columnDefinition = "integer not null default 5")
+    @Builder.Default
+    private int portScanMinPorts = 5;
+
+    @Column(name = "conn_flood_min_connections", columnDefinition = "integer not null default 50")
+    @Builder.Default
+    private int connFloodMinConnections = 50;
+
     @Column(name = "updated_at", nullable = false)
     @Builder.Default
     private OffsetDateTime updatedAt = OffsetDateTime.now();

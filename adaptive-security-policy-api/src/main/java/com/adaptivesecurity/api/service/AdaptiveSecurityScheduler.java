@@ -32,11 +32,8 @@ public class AdaptiveSecurityScheduler {
     private final SecurityPersistenceService persistence;
     private final PolicyService policyService;
     private final WhitelistService whitelistService;
-
-    // In-memory state — resets on app restart (replaced by DB in future)
     private final Set<String>             warnedIps      = ConcurrentHashMap.newKeySet();
     private final Set<String>             blockedIps     = ConcurrentHashMap.newKeySet();
-    // Attempt count at the moment of unblock — used to compute net new attempts after unblock
     private final ConcurrentMap<String, Integer> attemptBaseline = new ConcurrentHashMap<>();
 
     private volatile boolean ready = false;

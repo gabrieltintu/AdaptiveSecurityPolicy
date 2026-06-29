@@ -1,6 +1,7 @@
 package com.adaptivesecurity.api.service.detection;
 
 import com.adaptivesecurity.api.service.CommandExecutorService;
+import com.adaptivesecurity.api.service.PolicyService;
 import com.adaptivesecurity.api.utils.AppConstants;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -18,15 +19,14 @@ public class PortScanDetector implements ThreatDetector {
     private static final Pattern SCAN_PATTERN = Pattern.compile(AppConstants.PORT_SCAN_LINE_REGEX);
 
     private final CommandExecutorService commandExecutor;
+    private final PolicyService policyService;
 
     @Value("${security.detectors.port-scan.log-prefix:ASP-SCAN}")
     private String logPrefix;
 
-    @Value("${security.detectors.port-scan.min-ports:5}")
-    private int minPorts;
-
-    public PortScanDetector(CommandExecutorService commandExecutor) {
+    public PortScanDetector(CommandExecutorService commandExecutor, PolicyService policyService) {
         this.commandExecutor = commandExecutor;
+        this.policyService = policyService;
     }
 
     @Override
@@ -52,6 +52,7 @@ public class PortScanDetector implements ThreatDetector {
             }
         }
 
+        int minPorts = policyService.portScanMinPorts();
         for (Map.Entry<String, Set<String>> entry : portsByIp.entrySet()) {
             int distinctPorts = entry.getValue().size();
             if (distinctPorts >= minPorts) {

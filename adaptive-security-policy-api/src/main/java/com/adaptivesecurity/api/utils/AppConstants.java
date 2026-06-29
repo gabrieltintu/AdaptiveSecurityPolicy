@@ -3,13 +3,11 @@ package com.adaptivesecurity.api.utils;
 public final class AppConstants {
 
     private AppConstants() {
-        // Restrict instantiation
     }
 
     public static final int SUCCESS_EXIT_CODE = 0;
 
-    // iptables command templates — use StringUtils.formatString() to populate
-    // %1$s = action (-A to add, -D to delete), %2$s = ip address
+    // iptables command templates
     public static final String IPTABLES_INPUT_RULE   = "sudo iptables %s INPUT -s %s -j DROP";
     public static final String IPTABLES_OUTPUT_RULE  = "sudo iptables %s OUTPUT -d %s -j DROP";
     public static final String IPTABLES_FORWARD_SRC  = "sudo iptables %s FORWARD -s %s -j DROP";
@@ -21,7 +19,6 @@ public final class AppConstants {
     public static final String IPTABLES_CLOSE_PORT   = "sudo iptables -D INPUT -s %s -p tcp --dport %d -j ACCEPT";
 
     // Brute force detection — %d is replaced with the configurable detection window in minutes
-    public static final String AUTH_LOG_CMD              = "journalctl -u ssh -u sshd --since \"%d minutes ago\" --no-pager 2>/dev/null | grep \"Failed password\"";
     public static final String FAILED_PASSWORD_IP_REGEX  = "from (\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}) port";
 
     // Multi-service detection — base journald commands (%d = detection window in minutes)

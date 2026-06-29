@@ -27,7 +27,6 @@ public class FirewallManagementService {
     /**
      * Forcibly closes any active sockets to/from the blocked IP. The iptables DROP rule only
      * stops new packets; existing sessions would otherwise linger until they time out.
-     * Best effort — if the kernel lacks INET_DIAG_DESTROY, the block itself is still in place.
      */
     private void dropActiveConnections(String ipAddress) {
         commandExecutor.execute(StringUtils.formatString(AppConstants.SS_KILL_CMD, ipAddress));

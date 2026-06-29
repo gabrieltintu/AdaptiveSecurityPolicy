@@ -13,6 +13,8 @@ public record PolicyView(
         boolean sshProbeEnabled,
         boolean portScanEnabled,
         boolean connFloodEnabled,
+        int portScanMinPorts,
+        int connFloodMinConnections,
         OffsetDateTime updatedAt,
         String updatedBy
 ) {
@@ -26,6 +28,8 @@ public record PolicyView(
                 policy.isSshProbeEnabled(),
                 policy.isPortScanEnabled(),
                 policy.isConnFloodEnabled(),
+                policy.getPortScanMinPorts(),
+                policy.getConnFloodMinConnections(),
                 policy.getUpdatedAt(),
                 policy.getUpdatedBy()
         );

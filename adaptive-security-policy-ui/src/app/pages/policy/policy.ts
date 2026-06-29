@@ -23,6 +23,8 @@ export class PolicyComponent implements OnInit {
   sshProbeEnabled = true;
   portScanEnabled = true;
   connFloodEnabled = false;
+  portScanMinPorts = 5;
+  connFloodMinConnections = 50;
   updatedAt = '';
   updatedBy: string | null = null;
 
@@ -30,7 +32,7 @@ export class PolicyComponent implements OnInit {
   policySuccess = false;
   saving = false;
 
-  private original = { warningThreshold: 0, blockThreshold: 0, detectionWindowMinutes: 0, autoBlockEnabled: true, sshBruteforceEnabled: true, sshProbeEnabled: true, portScanEnabled: true, connFloodEnabled: false };
+  private original = { warningThreshold: 0, blockThreshold: 0, detectionWindowMinutes: 0, autoBlockEnabled: true, sshBruteforceEnabled: true, sshProbeEnabled: true, portScanEnabled: true, connFloodEnabled: false, portScanMinPorts: 5, connFloodMinConnections: 50 };
 
   whitelist: WhitelistEntry[] = [];
   wlIp = '';
@@ -68,6 +70,8 @@ export class PolicyComponent implements OnInit {
     this.sshProbeEnabled = p.sshProbeEnabled;
     this.portScanEnabled = p.portScanEnabled;
     this.connFloodEnabled = p.connFloodEnabled;
+    this.portScanMinPorts = p.portScanMinPorts;
+    this.connFloodMinConnections = p.connFloodMinConnections;
     this.updatedAt = p.updatedAt;
     this.updatedBy = p.updatedBy;
     this.original = {
@@ -78,7 +82,9 @@ export class PolicyComponent implements OnInit {
       sshBruteforceEnabled: p.sshBruteforceEnabled,
       sshProbeEnabled: p.sshProbeEnabled,
       portScanEnabled: p.portScanEnabled,
-      connFloodEnabled: p.connFloodEnabled
+      connFloodEnabled: p.connFloodEnabled,
+      portScanMinPorts: p.portScanMinPorts,
+      connFloodMinConnections: p.connFloodMinConnections
     };
   }
 
@@ -94,12 +100,15 @@ export class PolicyComponent implements OnInit {
       || this.sshBruteforceEnabled !== this.original.sshBruteforceEnabled
       || this.sshProbeEnabled !== this.original.sshProbeEnabled
       || this.portScanEnabled !== this.original.portScanEnabled
-      || this.connFloodEnabled !== this.original.connFloodEnabled;
+      || this.connFloodEnabled !== this.original.connFloodEnabled
+      || this.portScanMinPorts !== this.original.portScanMinPorts
+      || this.connFloodMinConnections !== this.original.connFloodMinConnections;
   }
 
   savePolicy(): void {
     this.policyMsg = '';
-    if (this.warningThreshold < 1 || this.blockThreshold < 1 || this.detectionWindowMinutes < 1) {
+    if (this.warningThreshold < 1 || this.blockThreshold < 1 || this.detectionWindowMinutes < 1
+      || this.portScanMinPorts < 1 || this.connFloodMinConnections < 1) {
       this.policySuccess = false;
       this.policyMsg = 'All values must be at least 1.';
       return;
@@ -118,7 +127,9 @@ export class PolicyComponent implements OnInit {
       sshBruteforceEnabled: this.sshBruteforceEnabled,
       sshProbeEnabled: this.sshProbeEnabled,
       portScanEnabled: this.portScanEnabled,
-      connFloodEnabled: this.connFloodEnabled
+      connFloodEnabled: this.connFloodEnabled,
+      portScanMinPorts: this.portScanMinPorts,
+      connFloodMinConnections: this.connFloodMinConnections
     }).subscribe({
       next: p => {
         this.applyPolicy(p);

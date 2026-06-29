@@ -11,6 +11,8 @@
 
 .detectors-label { display: block; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--glass-border); }
 
+.sensitivity-field { margin: -6px 0 6px; padding-left: 14px; border-left: 2px solid var(--glass-border); }
+
 .field-hint { font-size: 0.74rem; color: var(--text-muted); line-height: 1.4; }
 
 .btn-block { width: 100%; justify-content: center; padding: 12px; font-size: 0.92rem; margin-top: 4px; }
