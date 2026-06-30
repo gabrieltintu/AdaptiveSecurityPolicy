@@ -173,6 +173,25 @@ public class PolicyService {
         return PolicyView.from(saved);
     }
 
+    @Transactional
+    public PolicyView setPortKnocking(boolean enabled, Actor actor) {
+        SecurityPolicy policy = repository.findById(POLICY_ID).orElseGet(this::createDefault);
+        policy.setPortKnockingEnabled(enabled);
+        policy.setSshBruteforceEnabled(!enabled);
+        policy.setSshProbeEnabled(!enabled);
+        policy.setUpdatedAt(OffsetDateTime.now());
+        policy.setUpdatedBy(actor.username());
+
+        SecurityPolicy saved = repository.save(policy);
+        cache = saved;
+
+        auditService.log(AuditAction.CONFIG_CHANGE, actor, null, enabled
+                ? "Port knocking enabled (SSH detectors off, port 22 closed)"
+                : "Port knocking disabled (SSH detectors on, port 22 open)");
+
+        return PolicyView.from(saved);
+    }
+
     private String describeDiff(SecurityPolicy current, PolicyUpdateRequest next) {
         StringBuilder sb = new StringBuilder();
         appendChange(sb, "warningThreshold", current.getWarningThreshold(), next.getWarningThreshold());

@@ -23,6 +23,7 @@ export class PolicyComponent implements OnInit {
   sshProbeEnabled = true;
   portScanEnabled = true;
   connFloodEnabled = false;
+  portKnockingEnabled = false;
   portScanMinPorts = 5;
   connFloodMinConnections = 50;
   updatedAt = '';
@@ -70,6 +71,7 @@ export class PolicyComponent implements OnInit {
     this.sshProbeEnabled = p.sshProbeEnabled;
     this.portScanEnabled = p.portScanEnabled;
     this.connFloodEnabled = p.connFloodEnabled;
+    this.portKnockingEnabled = p.portKnockingEnabled;
     this.portScanMinPorts = p.portScanMinPorts;
     this.connFloodMinConnections = p.connFloodMinConnections;
     this.updatedAt = p.updatedAt;
@@ -142,6 +144,26 @@ export class PolicyComponent implements OnInit {
         this.policySuccess = false;
         this.policyMsg = err?.error?.message || 'Failed to update policy.';
         this.saving = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  togglePortKnocking(): void {
+    this.policyMsg = '';
+    this.policyService.setPortKnocking(this.portKnockingEnabled).subscribe({
+      next: p => {
+        this.applyPolicy(p);
+        this.policySuccess = true;
+        this.policyMsg = this.portKnockingEnabled
+          ? 'Port knocking activat — detectoarele SSH oprite, portul 22 închis.'
+          : 'Port knocking dezactivat — detectoarele SSH pornite, portul 22 deschis.';
+        this.cdr.detectChanges();
+      },
+      error: err => {
+        this.portKnockingEnabled = !this.portKnockingEnabled;
+        this.policySuccess = false;
+        this.policyMsg = err?.error?.message || 'Eroare la comutarea port knocking.';
         this.cdr.detectChanges();
       }
     });

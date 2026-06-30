@@ -53,6 +53,10 @@ public class SecurityPolicy {
     @Builder.Default
     private boolean connFloodEnabled = false;
 
+    @Column(name = "port_knocking_enabled", columnDefinition = "boolean not null default false")
+    @Builder.Default
+    private boolean portKnockingEnabled = false;
+
     @Column(name = "port_scan_min_ports", columnDefinition = "integer not null default 5")
     @Builder.Default
     private int portScanMinPorts = 5;

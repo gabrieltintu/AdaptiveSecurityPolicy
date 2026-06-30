@@ -56,6 +56,49 @@ public class FirewallManagementService {
         commandExecutor.execute(cmd);
     }
 
+    private static final String PK_ESTABLISHED_BODY = "-m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT";
+    private static final String PK_LOOPBACK_BODY    = "-i lo -j ACCEPT";
+    private static final String PK_SSH_DROP_BODY    = "-p tcp --dport 22 -j DROP";
+
+    /**
+     * Closes/opens SSH (port 22) for the port-knocking mode. Idempotent:
+     * adding a rule that already exists is skipped (iptables -C guard); removing
+     * one that isn't there is a no-op (delete loops only while the rule exists).
+     */
+    public FirewallActionResponse applyPortKnockingRules(boolean enable) {
+        List<String> errors = new ArrayList<>();
+        if (enable) {
+            runCollect(addIfMissing("INPUT", "-I INPUT 1", PK_ESTABLISHED_BODY), errors);
+            runCollect(addIfMissing("INPUT", "-I INPUT 2", PK_LOOPBACK_BODY), errors);
+            runCollect(addIfMissing("INPUT", "-A INPUT", PK_SSH_DROP_BODY), errors);
+        } else {
+            runCollect(deleteAll("INPUT", PK_SSH_DROP_BODY), errors);
+            runCollect(deleteAll("INPUT", PK_LOOPBACK_BODY), errors);
+            runCollect(deleteAll("INPUT", PK_ESTABLISHED_BODY), errors);
+        }
+        boolean success = errors.isEmpty();
+        String message = success
+                ? "Port knocking rules " + (enable ? "applied" : "removed") + " successfully."
+                : "Partial failure on port-knocking rules: " + String.join("; ", errors);
+        return FirewallActionResponse.builder().success(success).message(message).build();
+    }
+
+    private String addIfMissing(String chain, String addCmd, String body) {
+        return "sudo iptables -C " + chain + " " + body + " 2>/dev/null || sudo iptables " + addCmd + " " + body;
+    }
+
+    private String deleteAll(String chain, String body) {
+        return "while sudo iptables -C " + chain + " " + body + " 2>/dev/null; do "
+                + "sudo iptables -D " + chain + " " + body + "; done";
+    }
+
+    private void runCollect(String cmd, List<String> errors) {
+        String result = commandExecutor.execute(cmd);
+        if (result != null && (result.startsWith("Warning") || result.startsWith("Internal error"))) {
+            errors.add(result);
+        }
+    }
+
     private List<String> buildCommands(String action, String ipAddress, String chain) {
         List<String> commands = new ArrayList<>();
         if (chain.equals("INPUT") || chain.equals("ALL")) {

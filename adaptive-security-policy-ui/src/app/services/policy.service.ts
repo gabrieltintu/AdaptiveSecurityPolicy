@@ -12,6 +12,7 @@ export interface SecurityPolicy {
   sshProbeEnabled: boolean;
   portScanEnabled: boolean;
   connFloodEnabled: boolean;
+  portKnockingEnabled: boolean;
   portScanMinPorts: number;
   connFloodMinConnections: number;
   updatedAt: string;
@@ -42,5 +43,9 @@ export class PolicyService {
 
   updatePolicy(request: PolicyUpdateRequest): Observable<SecurityPolicy> {
     return this.http.put<SecurityPolicy>(`${API_BASE_URL}/policy`, request);
+  }
+
+  setPortKnocking(enabled: boolean): Observable<SecurityPolicy> {
+    return this.http.post<SecurityPolicy>(`${API_BASE_URL}/policy/port-knocking`, { enabled });
   }
 }

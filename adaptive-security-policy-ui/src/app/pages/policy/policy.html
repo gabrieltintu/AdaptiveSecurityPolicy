@@ -43,6 +43,17 @@
         </label>
       </div>
 
+      <div class="toggle-row">
+        <div class="toggle-text">
+          <span class="toggle-title">Port knocking</span>
+          <span class="field-hint">Închide portul 22 (acces SSH doar prin secvența de knock) și oprește detectoarele SSH. Se aplică imediat.</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" [(ngModel)]="portKnockingEnabled" (change)="togglePortKnocking()" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
       <span class="form-label detectors-label">Active detectors</span>
 
       <div class="toggle-row">
@@ -51,7 +62,7 @@
           <span class="field-hint">Repeated failed SSH password attempts.</span>
         </div>
         <label class="switch">
-          <input type="checkbox" [(ngModel)]="sshBruteforceEnabled" />
+          <input type="checkbox" [(ngModel)]="sshBruteforceEnabled" [disabled]="portKnockingEnabled" />
           <span class="slider"></span>
         </label>
       </div>
@@ -62,7 +73,7 @@
           <span class="field-hint">Username enumeration ("invalid user" scans).</span>
         </div>
         <label class="switch">
-          <input type="checkbox" [(ngModel)]="sshProbeEnabled" />
+          <input type="checkbox" [(ngModel)]="sshProbeEnabled" [disabled]="portKnockingEnabled" />
           <span class="slider"></span>
         </label>
       </div>
