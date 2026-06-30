@@ -22,7 +22,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         // Endpoint-ul WebSocket, cu fallback SockJS pentru browsere mai vechi
         registry.addEndpoint("/ws")
-                .setAllowedOrigins("http://localhost:4200", "http://192.168.64.4:4200")
+                .setAllowedOriginPatterns("*")
                 .withSockJS();
     }
 }

@@ -24,7 +24,6 @@ CREATE TABLE tracked_ip (
     country           VARCHAR(60),
     city              VARCHAR(80),
     threat_score      INTEGER,
-    whitelisted       BOOLEAN      NOT NULL DEFAULT FALSE,
     first_seen        TIMESTAMPTZ  NOT NULL DEFAULT now(),
     last_seen         TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
